@@ -1,0 +1,66 @@
+# -*- mode: makefile -*-
+
+######################################################################
+# Directories
+######################################################################
+
+SRCDIR = $(shell pwd)
+
+# Where to find GMP ($(GMP_PREFIX)/include, ($GMP_PREFIX)/lib
+#
+GMP_PREFIX = /usr
+
+# Where to find MPFR ($(MPFR_PREFIX)/include, ($MPFR_PREFIX)/lib
+#
+MPFR_PREFIX = /usr
+
+# Where to find OCAML ($(CAML_PREFIX)/bin, $(CAML_PREFIX)/lib/ocaml, ...)
+#
+CAML_PREFIX = /usr
+
+# Where to find CAMLIDL ($(CAMLIDL_PREFIX)/bin, $(CAMLIDL_PREFIX)/lib/ocaml, ...)
+#
+CAMLIDL_PREFIX = /usr
+
+# Where to find APRON ($(APRON_PREFIX)/include, $(APRON_PREFIX)/lib)
+APRON_PREFIX = /usr/local
+
+# Where to find PPL ($(PPL_PREFIX)/include, $(PPL_PREFIX)/lib
+#
+PPL_PREFIX = /usr/local
+
+# Where to install and to find Analyzer fixpoint solver
+# ($(ANALYZER_PREFIX)/lib)
+#
+ANALYZER_PREFIX= /usr/local
+
+# Where to install and to find Camllib 
+# ($(CAMLLIB_PREFIX)/lib)
+#
+CAMLLIB_PREFIX = /usr/local
+
+######################################################################
+# Tools and Flags
+######################################################################
+
+RM=/bin/rm -f
+
+OCAMLC = $(CAML_PREFIX)/bin/ocamlc.opt
+OCAMLOPT = $(CAML_PREFIX)/bin/ocamlopt.opt
+OCAMLLEX = $(CAML_PREFIX)/bin/ocamllex.opt
+OCAMLYACC = $(CAML_PREFIX)/bin/ocamlyacc
+OCAMLDOC = $(CAML_PREFIX)/bin/ocamldoc.opt
+OCAMLDEP = $(CAML_PREFIX)/bin/ocamldep.opt
+
+# ocamlc compilation flags
+OCAMLFLAGS = -g
+# ocamlopt compilation flags
+OCAMLOPTFLAGS = -inline 20
+
+LATEX=latex
+DVIPDF=dvipdf
+MAKEINDEX=makeindex
+TEXI2DVI=texi2dvi
+TEXI2HTML=texi2html
+
+
