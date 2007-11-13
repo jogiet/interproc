@@ -198,7 +198,7 @@ let tcons_of_cons env (cons:Spl_syn.cons) : Apron.Tcons1.t
       (Apron.Tcons1.SUPEQ,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr2,expr1,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
   | LT -> 
-      (Apron.Tcons1.EQ,
+      (Apron.Tcons1.SUP,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr2,expr1,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
   in
   Apron.Tcons1.make (Apron.Texpr1.of_expr env expr) typ

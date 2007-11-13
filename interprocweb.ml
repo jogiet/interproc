@@ -28,7 +28,7 @@ module Link = struct
       "Analyzer Fixpoint Solver Library"
   let (simple_syntax:string) =
     Html.link
-      "http://"
+      "http://bjeannet.gforge.inria.fr/interproc/manual_syntax.html"
       "``Simple'' language syntax"
   let (program_examples:string) =
     Print.sprintf "%s %s %s %s"
@@ -39,7 +39,7 @@ module Link = struct
       (Html.link
 	"heapsort.txt" "heapsort")
       (Html.link
-	"symetricalstairs.txt" "symetricalstairs")
+	"symmetricalstairs.txt" "symmetricalstairs")
 
   let (ocamlhtml:string) =
     Html.link
@@ -361,7 +361,7 @@ let _ =
   
   Html.html_begin
     ~lang:"en"
-    ~author:"Antoine Min&eacute;"
+    ~author:"Antoine Min&eacute and Bertrand Jeannet"
     ~desc:"\
 CGI interface to the Interproc static analyzer, \
 illustrating the use of the APRON Abstract Domain Library"
@@ -369,8 +369,8 @@ illustrating the use of the APRON Abstract Domain Library"
   ;
   main ();
   html_end
-    ~author:"Antoine Min&eacute"
-    ~email:"mine@NOSPAM.di.ens.fr"
+    ~author:"Antoine Min&eacute and Bertrand Jeannet"
+    ~email:"bjeannet@NOSPAM inrialpes.fr"
     ()
   ;
   ()

@@ -3,8 +3,17 @@
 ######################################################################
 # Directories
 ######################################################################
+#
+# Installation directory prefix
+#
+# binaries will be looked in $(XXX_PREFIX)/bin,
+# C include files in $(XXX_PREFIX)/include,
+# C libraries and OCaml object files and libraries
+# in $(PREFIX_INSTALL)/lib
 
-SRCDIR = $(shell pwd)
+# Where to install INTERPROC 
+#
+INTERPROC_PREFIX = /usr/local
 
 # Where to find GMP ($(GMP_PREFIX)/include, ($GMP_PREFIX)/lib
 #
@@ -29,10 +38,10 @@ APRON_PREFIX = /usr/local
 #
 PPL_PREFIX = /usr/local
 
-# Where to install and to find Analyzer fixpoint solver
-# ($(ANALYZER_PREFIX)/lib)
+# Where to install and to find Fixpoint fixpoint solver
+# ($(FIXPOINT_PREFIX)/lib)
 #
-ANALYZER_PREFIX= /usr/local
+FIXPOINT_PREFIX= /usr/local
 
 # Where to install and to find Camllib 
 # ($(CAMLLIB_PREFIX)/lib)

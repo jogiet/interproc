@@ -1,7 +1,7 @@
 include Makefile.config
 
 #---------------------------------------
-# variables utiles
+# Directories
 #---------------------------------------
 
 # For the WEB version
@@ -14,15 +14,19 @@ LCFLAGS = \
 -L$(APRON_PREFIX)/lib \
 -L$(CAML_PREFIX)/lib/ocaml \
 -L$(CAMLIDL_PREFIX)/lib/ocaml \
--L$(ANALYZER_PREFIX)/lib
+-L$(FIXPOINT_PREFIX)/lib
 
 
 OCAMLLDFLAGS = \
--g -noautolink unix.cma bigarray.cma camllib.cma analyzer.cma gmp.cma apron.cma box.cma oct.cma polka.cma ppl.cma polkaGrid.cma -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml_debug -lap_pkgrid_debug -lap_ppl_caml -lap_ppl_debug -lppl -lgmpxx -lpolka_caml_debug -lpolka_debug -loct_caml -loct -lbox_caml_debug -lbox_debug -lapron_caml_debug -lapron_debug -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
+-g -noautolink unix.cma bigarray.cma camllib.cma fixpoint.cma gmp.cma apron.cma box.cma oct.cma polka.cma ppl.cma polkaGrid.cma -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolka_caml -lpolka -loct_caml -loctMPQ -lbox_caml -lbox -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
 
 OCAMLOPTLDFLAGS = \
--g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa analyzer.cmxa gmp.cmxa apron.cmxa box.cmxa oct.cmxa polka.cmxa ppl.cmxa polkaGrid.cmxa \
--cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml_debug -lap_pkgrid_debug -lap_ppl_caml -lap_ppl_debug -lppl -lgmpxx -lpolka_caml_debug -lpolka_debug -loct_caml -loct -lbox_caml_debug -lbox_debug -lapron_caml_debug -lapron_debug -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
+-g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa box.cmxa oct.cmxa polka.cmxa ppl.cmxa polkaGrid.cmxa \
+-cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolka_caml -lpolka -loct_caml -loctMPQ -lbox_caml -lbox -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
+
+OCAMLOPTLDFLAGSf = \
+-g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa box.cmxa oct.cmxa polka.cmxa ppl.cmxa polkaGrid.cmxa \
+-cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolka_caml -lpolka -loct_caml -loctD -lbox_caml -lboxD -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
 
 OCAMLINC = \
 -I $(OCAMLHTML_INSTALL)/lib \
@@ -45,34 +49,39 @@ OBJx = $(MLMODULES:%=%.cmx)
 #---------------------------------------
 
 # Global rules
-all: interproc
-opt: interproc.opt
+all: interproc interproc.opt interprocf.opt
 
-interproc: $(OBJ) interproc.cmo apronrun
-	$(OCAMLC) -g -o $@ -use-runtime ./apronrun $(OCAMLFLAGS) $(OCAMLINC) \
-	bigarray.cma unix.cma camllib.cma analyzer.cma gmp.cma		\
-	apron.cma polka.cma box.cma ppl.cma polkaGrid.cma analyzer.cma $(OBJ) interproc.cmo
+interproc: $(OBJ) interproc.cmo interprocrun
+	$(OCAMLC) -g -o $@ -use-runtime ./interprocrun $(OCAMLFLAGS) $(OCAMLINC) \
+	bigarray.cma unix.cma camllib.cma fixpoint.cma gmp.cma		\
+	apron.cma polka.cma box.cma ppl.cma polkaGrid.cma fixpoint.cma $(OBJ) interproc.cmo
 
-apronrun:
+interprocrun:
 	$(OCAMLC) -g -o $@ -make-runtime $(OCAMLINC) $(OCAMLLDFLAGS)
 
 interproc.opt: $(OBJx) interproc.cmx
 	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
-	analyzer.cmxa $(OBJx) interproc.cmx
+	fixpoint.cmxa $(OBJx) interproc.cmx
+
+interprocf.opt: $(OBJx) interproc.cmx
+	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGSf) \
+	fixpoint.cmxa $(OBJx) interproc.cmx
+
+install:
+	$(INSTALLd) $(PREFIX)/bin
+	for i in interproc interprocrun interproc.opt interprocf.opt; do \
+		$(INSTALL) $$i $(PREFIX)/bin; \
+	done
 
 interprocweb.cgi: $(OBJx) interprocweb.cmx 
 	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
-	analyzer.cmxa html.cmxa $(OBJx) interprocweb.cmx 
-
-interprocweb: $(OBJ) interprocweb.cmo 
-	$(OCAMLC) -g -o $@ -use-runtime ./apronrun -verbose $(OCAMLINC) $(OCAMLLDFLAGS) \
-	analyzer.cma html.cma $(OBJ) interprocweb.cmo 
+	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx 
 
 mostlyclean: clean
 	$(RM) -r *.pdf html
 
 clean:
-	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc apronrun interproc.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
+	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc interprocrun interproc.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
 
 #---------------------------------------
 # TEX and HTML rules
@@ -84,10 +93,10 @@ manual.pdf: manual.dvi
 	$(DVIPDF) manual.dvi
 
 manual.dvi:
-	latex manual
+	$(LATEX) manual
 	bibtex manual
-	latex manual
-	latex manual
+	$(LATEX) manual
+	$(LATEX) manual
 
 interproc.pdf: interproc.dvi
 	$(DVIPDF) interproc.dvi
