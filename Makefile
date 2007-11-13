@@ -73,6 +73,11 @@ install:
 		$(INSTALL) $$i $(PREFIX)/bin; \
 	done
 
+distclean: clean
+	for i in interproc interprocrun interproc.opt interprocf.opt; do \
+		/bin/rm -f $(PREFIX)/bin/$$i; \
+	done
+
 interprocweb.cgi: $(OBJx) interprocweb.cmx 
 	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
 	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx 
@@ -81,7 +86,10 @@ mostlyclean: clean
 	$(RM) -r *.pdf html
 
 clean:
-	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc interprocrun interproc.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
+	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc interprocrun interproc.opt interprocf.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
+
+dist: Makefile Makefile.config.model COPYING README $(MLSRC) interproc.ml interproc.mli interprocweb.ml interprocweb.mli manual.tex manual.bib interproc.tex mypanels.hlx examples manual.pdf 
+	(cd ..; tar zcvf $(HOME)/interproc.tgz $(^:%=interproc/%))
 
 #---------------------------------------
 # TEX and HTML rules
