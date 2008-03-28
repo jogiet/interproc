@@ -86,7 +86,7 @@ let build_graphs
   ;
   (fgraph,bgraph)
 
-let compute_display
+let compute_and_display
   (fmt:Format.formatter)
   (prog:Spl_syn.program)
   (fgraph:Equation.graph) (bgraph:Equation.graph)
@@ -144,7 +144,7 @@ let compute_display
   ;
   ()
 
-let analyze_display
+let analyze_and_display
   (fmt:Format.formatter)
   (prog:Spl_syn.program)
   :
@@ -154,31 +154,31 @@ let analyze_display
   (* Computing solution *)
   begin match !domain with
   | Box ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Box.manager_alloc ())
   | Octagon ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Oct.manager_alloc ()) 
   | PolkaLoose ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Polka.manager_alloc_loose ()) 
   | PolkaStrict ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Polka.manager_alloc_strict ()) 
   | PolkaEq ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Polka.manager_alloc_equalities ()) 
   | PplPolyLoose ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Ppl.manager_alloc_loose ()) 
   | PplPolyStrict ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Ppl.manager_alloc_strict ()) 
   | PplGrid ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (Ppl.manager_alloc_grid ()) 
   | PolkaGrid ->
-      compute_display fmt prog fgraph bgraph
+      compute_and_display fmt prog fgraph bgraph
       (PolkaGrid.manager_alloc_loose ()) 
   end
 

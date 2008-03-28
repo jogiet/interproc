@@ -53,44 +53,45 @@ let make_fpmanager
   =
   let info = Equation.Graph.info graph in
   {
-    Fixpoint.bottom = begin fun vtx ->
+    MkFixpoint.bottom = begin fun vtx ->
       Apron.Abstract1.bottom man (Hashhe.find info.Equation.pointenv vtx)
     end;
-    Fixpoint.canonical = begin fun vtx abs -> ()
+    MkFixpoint.canonical = begin fun vtx abs -> ()
       (* Apron.Abstract1.canonicalize man abs *)
     end;
-    Fixpoint.is_bottom = begin fun vtx abs ->
-      (Apron.Abstract1.is_bottom man abs)==Apron.Manager.True
+    MkFixpoint.is_bottom = begin fun vtx abs ->
+      Apron.Abstract1.is_bottom man abs
     end;
-    Fixpoint.is_leq = begin fun vtx abs1 abs2 ->
-      (Apron.Abstract1.is_leq man abs1 abs2)==Apron.Manager.True
+    MkFixpoint.is_leq = begin fun vtx abs1 abs2 ->
+      Apron.Abstract1.is_leq man abs1 abs2
     end;
-    Fixpoint.join = begin fun vtx abs1 abs2 ->
+    MkFixpoint.join = begin fun vtx abs1 abs2 ->
       Apron.Abstract1.join man abs1 abs2
     end;
-    Fixpoint.join_list = begin fun vtx labs ->
+    MkFixpoint.join_list = begin fun vtx labs ->
       Apron.Abstract1.join_array man (Array.of_list labs)
     end;
-    Fixpoint.widening = begin fun vtx abs1 abs2 ->
+    MkFixpoint.widening = begin fun vtx abs1 abs2 ->
       Apron.Abstract1.widening man abs1 abs2
     end;
-    Fixpoint.apply = begin fun hedge tx ->
+    MkFixpoint.apply = begin fun hedge tx ->
       apply graph ~output man hedge tx
     end;
-    Fixpoint.arc_init = begin fun hedge -> () end;
-    Fixpoint.get_init = get_init;
-    Fixpoint.print_abstract = Apron.Abstract1.print;
-    Fixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
-    Fixpoint.print_vertex=PSpl_syn.print_point;
-    Fixpoint.print_hedge=pp_print_int;
-    Fixpoint.widening_first = !widening_first;
-    Fixpoint.widening_start = !widening_start;
-    Fixpoint.widening_freq = !widening_freq;
-    Fixpoint.widening_descend = !widening_descend;
-    Fixpoint.print_analysis=debug>=1;
-    Fixpoint.print_step=debug>=2;
-    Fixpoint.print_state=debug>=3;
-    Fixpoint.print_postpre=debug>=4;
+    MkFixpoint.arc_init = begin fun hedge -> () end;
+    MkFixpoint.get_init = get_init;
+    MkFixpoint.print_abstract = Apron.Abstract1.print;
+    MkFixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
+    MkFixpoint.print_vertex=PSpl_syn.print_point;
+    MkFixpoint.print_hedge=pp_print_int;
+    MkFixpoint.accumulate = true;
+    MkFixpoint.widening_first = !widening_first;
+    MkFixpoint.widening_start = !widening_start;
+    MkFixpoint.widening_freq = !widening_freq;
+    MkFixpoint.widening_descend = !widening_descend;
+    MkFixpoint.print_analysis=debug>=1;
+    MkFixpoint.print_step=debug>=2;
+    MkFixpoint.print_state=debug>=3;
+    MkFixpoint.print_postpre=debug>=4;
   }
 
 (** Make an output graph filled with bottom abstract avlues *)
@@ -108,9 +109,9 @@ let make_emptyoutput
     (begin fun hedge arc ~pred ~succ -> () end)
     (begin fun info ->
       {
-	Fixpoint.time = 0.0;
-	Fixpoint.iterations = 0;
-	Fixpoint.descendings = 0;
+	MkFixpoint.time = 0.0;
+	MkFixpoint.iterations = 0;
+	MkFixpoint.descendings = 0;
       }
     end)
 
@@ -360,7 +361,7 @@ module Forward = struct
 	  Equation.SetteP.singleton start
       | Some output ->
 	  let abstract = Equation.Graph.attrvertex output start in
-	  if (Apron.Abstract1.is_bottom manager abstract) = Apron.Manager.True then
+	  if Apron.Abstract1.is_bottom manager abstract then
 	    Equation.SetteP.empty
 	  else
 	    (Equation.SetteP.singleton start)
@@ -592,7 +593,7 @@ module Backward = struct
 	      | None -> true
 	      | Some output ->
 		  let abstract = Equation.Graph.attrvertex output bpoint in
-		  Apron.Abstract1.is_bottom manager abstract <> Apron.Manager.True
+		  not (Apron.Abstract1.is_bottom manager abstract)
 	    in
 	    if ok then
 	      sstart := Equation.SetteP.add bpoint !sstart;

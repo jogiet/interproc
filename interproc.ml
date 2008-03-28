@@ -39,7 +39,7 @@ let main () =
   ;
 
   (* Computing solution *)
-  Frontend.analyze_display Format.std_formatter prog;
+  Frontend.analyze_and_display Format.std_formatter prog;
   ()
 
 let _ = main()

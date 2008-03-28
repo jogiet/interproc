@@ -9,11 +9,11 @@
 val parse_lexbuf : Format.formatter -> Lexing.lexbuf -> Spl_syn.program
 
 val build_graphs : Spl_syn.program -> Equation.graph * Equation.graph
-val compute_display :
+val compute_and_display :
   Format.formatter ->
   Spl_syn.program ->
   Equation.graph -> Equation.graph -> 
   'a Apron.Manager.t -> 
   unit
 
-val analyze_display : Format.formatter -> Spl_syn.program -> unit
+val analyze_and_display : Format.formatter -> Spl_syn.program -> unit

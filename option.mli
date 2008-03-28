@@ -41,6 +41,7 @@ type domain =
   | PplPolyStrict
   | PplGrid
   | PolkaGrid
+val assocnamedomain : (string * domain) list
 val domain : domain ref
 
 (*  ---------------------------------------------------------------------- *)

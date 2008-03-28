@@ -22,10 +22,14 @@ module Link = struct
     Html.link
       "http://apron.cri.ensmp.fr/library/"
       "APRON Abstract Domain Library"
-  let (analyzer:string) =
+  let (fixpoint:string) =
     Html.link
-      "http://pop-art.inrialpes.fr/people/bjeannet/analyzer/index.html"
-      "Analyzer Fixpoint Solver Library"
+      "http://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/fixpoint/index.html"
+      "Fixpoint Solver Library"
+  let (interproc:string) =
+    Html.link
+      "http://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/interproc/index.html"
+      "Interproc"
   let (simple_syntax:string) =
     Html.link
       "http://bjeannet.gforge.inria.fr/interproc/manual_syntax.html"
@@ -165,6 +169,7 @@ let symmetricalstairs =
 "      y = y-1;\r\n"^
 "    endif;\r\n"^
 "  done;\r\n"^
+"  if y<0 then fail; endif;\r\n"^
 "end\r\n"
 
 
@@ -249,14 +254,16 @@ let frontpage () =
   Html.h1 "The Interproc Analyzer";
   Html.p
     (Printf.sprintf "\
-This is a web interface to the Interproc analyzer connected \
+This is a web interface to the %s analyzer connected \
 to the %s and the %s, whose goal is to demonstrate the features \
 of the APRON library and, to a less extent, of the Analyzer fixpoint engine, \
 in the static analysis field."
+      Link.interproc
       Link.apron
-      Link.analyzer
+      Link.fixpoint
     );
   Html.form_begin ~meth:Multipart "interprocweb.cgi";
+
   Html.h2 "Arguments";
   Html.p ("\
 Please type a program, upload a file from your hard-drive, \
@@ -275,11 +282,66 @@ or choose one the provided examples:"
   Html.br ();
   Html.form_textarea ~default:"/* type your program here ! */" "text" 15 60;
   Html.br ();
+  Html.form_menu "abstraction"
+    [
+      Option (None, "none", "Choose an Abstract Domain:", false);
+      Option (None, "box", "box", false);
+      Option (None, "octagon", "octagon", false);
+      Option (None, "polka", "convex polyhedra (polka)", true);
+      Option (None, "ppl", "convex polyhedra (PPL)", false);
+      Option (None, "polkastrict", "strict convex polyhedra (polka)", false);
+      Option (None, "pplstrict", "strict convex polyhedra (PPL)", false);
+      Option (None, "pplgrid", "linear congruences (PPL)", false);
+      Option (None, "polkagrid", "convex polyhedra + linear congruences", false);
+    ];
+  Html.form_text
+    ~size:6
+    ~maxlength:6
+    ~default:"f"
+    "analysis"
+  ;
+  print_string " Analysis type"; 
+
+  print_string "<br>Iterations/Widening options:<br>";
+  Html.form_checkbox
+    ~checked:false
+    "guided"
+  ;
+  print_string "guided iterations<br>";
+  Html.form_checkbox
+    ~checked:false
+    "widening_first"
+  ;
+  print_string "widening first ";
+  Html.form_text
+    ~size:2
+    ~maxlength:2
+    ~default:"1"
+    "widening_start"
+  ;
+  print_string " widening delay ";
+  Html.form_text
+    ~size:2
+    ~maxlength:2
+    ~default:"1"
+    "widening_frequency"
+  ;
+  print_string " widening frequency<br>";
+  Html.form_text
+    ~size:2
+    ~maxlength:2
+    ~default:"2"
+    "descending"
+  ;
+  print_string "descending steps<br>";
+
   print_string "\
 <p>\n\
 Hit the OK button to proceed: ";
   Html.form_submit ~label:"OK !" ();
   Html.form_reset ~label:"Reset" ();
+
+
   Html.form_end ();
   
   Html.h2 Link.simple_syntax;
@@ -295,10 +357,11 @@ temporary files stored on our server that have a very short life-time."
   Html.h2 "Informations";
   Html.p (Print.sprintf "\
 The %s is freely available. It is written in C, with a OCaml binding. \
-The Interproc analyzer and the %s are freely available, \
+The %s analyzer and the %s are freely available, \
 and are written in OCaml."
+    Link.interproc
     Link.apron
-    Link.analyzer);
+    Link.fixpoint);
   Html.p
     (Print.sprintf "\
 This CGI-WEB interface is written in OCaml using the %s, \
@@ -312,45 +375,100 @@ freely available"
 (* ********************************************************************** *)
 
 let main () =
-  begin match Cgi.get_cgi_args () with
-  | [
-      ("file",Some"");
-      ("filecontent",Some"");
-      ("example",Some"none");
-      ("text",Some text)
-    ] ->
-      (* text aera *)
-      analyze text
+  try
+    let args = Cgi.get_cgi_args () in
+(*
+    Format.bprintf Format.stdbuf
+      "%a"
+      (Print.list
+	(fun fmt (str1,ostr2) ->
+	  Format.fprintf fmt "(%s,%s)"
+	  str1
+	  (begin match ostr2 with
+	  | None -> "None"
+	  | Some s -> "Some "^s
+	  end)
+	))
+      args
+    ;
+    print_string "<pre>\r\n";
+    print_string (myescape_html (Format.flush_str_formatter ()));
+    print_string "</pre>\r\n";
+*)
+    let (text,args) = match args with
+      | ("file",Some "")::
+	  ("filecontent",Some "")::
+	  ("example",Some "none")::
+	  ("text",Some text)::
+	  args 
+	->
+	  (text,args)
+      | ("file",_)::
+	  ("filecontent",Some text)::
+	  ("example",Some "none")::
+	  ("text",_)::
+	  args
+	->
+	  (text,args)
 
-  | [
-      ("file",_);
-      ("filecontent",Some text);
-      ("example",Some"none");
-      ("text",_)
-    ] ->
-      (* file *)
-      analyze text
+      | ("file",_)::
+	  ("filecontent",_)::
+	  ("example",Some e)::
+	  ("text",_ )::
+	  args
+	->
+	  let text = match e with
+	    | "ackerman"   -> ackerman
+	    | "maccarthy91"     -> maccarthy91
+	    | "heapsort" -> heapsort
+	    | "symmetricalstairs" -> symmetricalstairs
+	    | _ -> "begin\n  end\n"
+	  in
+	  (text,args)
+      | _ -> raise Exit
+    in
+ 
+    Solving.iteration_guided := false;
+    Solving.widening_first := false;
 
-  | [
-      ("file",_);
-      ("filecontent",_);
-      ("example",Some e);
-      ("text",_ )
-    ] ->
-      (* example *)
-      analyze begin
-	match e with
-	| "ackerman"   -> ackerman
-	| "maccarthy91"     -> maccarthy91
-	| "heapsort" -> heapsort
-	| "symmetricalstairs" -> symmetricalstairs
-	| _ -> "begin\n  end\n"
-      end
-  | _ ->
-      frontpage ()
-  end;
-  ()
-
+    List.iter
+      (begin function
+	| ("abstraction",Some name) ->
+	    Option.domain := List.assoc name Option.assocnamedomain;
+	| ("analysis", Some text) ->
+	    Option.analysis := [];
+	    String.iter
+	      (begin fun chr ->
+		match chr with
+		| 'f' ->
+		    Option.analysis := Option.Forward :: !Option.analysis
+	      | 'b' ->
+		  Option.analysis := Option.Backward :: !Option.analysis
+	      | _ ->
+		  raise (Arg.Bad ("Wrong argument `"^text^"'; option `-analysis' expects only 'f' or 'b' characters in its argument string"))
+	    end)
+	    text;
+	    Option.analysis := List.rev !Option.analysis;
+	    if !Option.analysis=[] then 
+	      Option.analysis := [Option.Forward]
+	    ;
+ 	| ("guided",Some "on") ->
+	    Solving.iteration_guided := true
+	| ("widening_first",Some "on") ->
+	    Solving.widening_first := true
+	| ("widening_start",Some text) ->
+	    Solving.widening_start := int_of_string text;
+	| ("widening_frequency",Some text) ->
+	    Solving.widening_freq := int_of_string text;
+	| ("descending",Some text) ->
+	    Solving.widening_descend := int_of_string text;
+	| _ -> ()
+      end)
+      args
+    ;
+    analyze text
+  with Exit ->
+    frontpage ()
 
 let _ =
   Cgi.set_timeout 15;
