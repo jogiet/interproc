@@ -7,20 +7,27 @@
 *)
 
 (*  ********************************************************************* *)
-(** {2 Instanciated modules} *)
+(** {2 Hypergraphs} *)
 (*  ********************************************************************* *)
 
-(** Sets over control points *)
-module SetteP : (Sette.S with type elt=Spl_syn.point)
+(** Comparison for polymorhic sets and graphs *)
+val compare_point : Spl_syn.point -> Spl_syn.point -> int
 
-(** Hypergraphs representing equation systems. Vertex identifiers
+
+(** A variable in an equation = a control point *)
+type vertex = Spl_syn.point
+val vertex_dummy : vertex
+
+(** A function in an equation: identified by an integer *)
+type hedge = int
+val hedge_dummy : hedge
+
+(** Creation of hypergraphs representing equation systems. Vertex identifiers
   are control points, (Hyper)edge identifiers are just integers. An hyperedge
   [([|x1;x2|],i,[|y|])] represents an inequation [y >= f_i(x1,x2)] where [f_i]
   is the function associated to the hyperedge identifier [i]. *)
-module Graph : (SHGraph.S with type vertex = Spl_syn.point
-			  and type hedge = int 
-			  and module SetV = SetteP
-			  and module SetH = SetteI)
+
+val create : int -> 'c -> (vertex,hedge,'a,'b,'c) PSHGraph.t
 
 (*  ********************************************************************* *)
 (** {2 Preprocessed information} *)
@@ -78,7 +85,7 @@ type transfer =
 control point, and hyperedge identifiers are integers, with which are
 associated objects of type [transfer]. Global information associated with the
 graph is of type [info]. *)
-type graph = (unit,transfer,info) Graph.t
+type graph = (vertex,hedge,unit,transfer,info) PSHGraph.t
 
 (*  ********************************************************************* *)
 (** {2 Functions} *)

@@ -9,10 +9,14 @@
 open Format;;
 
 (*  ********************************************************************* *)
-(** {2 Instanciated modules} *)
+(** {2 Hypergraphs *)
 (*  ********************************************************************* *)
 
-(** {3 Sets of control points} *)
+(** A variable in an equation = a control point *)
+type vertex = Spl_syn.point
+
+(** A function in an equation: identified by an integer *)
+type hedge = int
 
 let compare_point (a:Spl_syn.point) (b:Spl_syn.point) =
   a.Spl_syn.char - b.Spl_syn.char
@@ -20,37 +24,27 @@ let compare_point (a:Spl_syn.point) (b:Spl_syn.point) =
 let equal_point (a:Spl_syn.point) (b:Spl_syn.point) =
    (a.Spl_syn.char == b.Spl_syn.char)
  
-module SetteP = Sette.Make(struct
-  type t=Spl_syn.point
-  let compare = compare_point
-end)
-module HashheP = Hashhe.Make(struct
-  type t=Spl_syn.point
-  let equal = equal_point
-  let hash x = x.Spl_syn.char
-end)
+let hash_point x = 
+  abs x.Spl_syn.char
 
-(** {3 Graphs representing equation systems} *)
 
-(** Parameter module for hypergraph (will describe equation system) *)
-module T = struct
-  type vertex=Spl_syn.point
-  type hedge=int
-  let vertex_dummy = { Spl_syn.line=(-1); Spl_syn.col=(-1); Spl_syn.char=(-1) }
-  let hedge_dummy = (-1)
-  module SetV=SetteP
-    (** Set module for vertices *)
-  module SetH=SetteI
-    (** Set module for hyperedges *)
-  module HashV=HashheP
-    (** Hash module for vertices *)
-  module HashH=HashheI
-    (** Hash module for hyperedges *)
-end
+let vertex_dummy = { Spl_syn.line=(-1); Spl_syn.col=(-1); Spl_syn.char=(-1) }
+let hedge_dummy = -1
 
-(** Hypergraphs describing equation system) *)
-module Graph = SHGraph.Make(T) 
-
+let compare = { 
+  PSHGraph.hashv = {
+    Hashhe.hash = hash_point;
+    Hashhe.equal = equal_point;
+  };
+  PSHGraph.hashh = {
+    Hashhe.hash = (fun x -> abs x);
+    Hashhe.equal = (==)
+  };
+  PSHGraph.comparev = compare_point;
+  PSHGraph.compareh = (-)
+}
+  
+let create n info = PSHGraph.create compare n info
 
 (*  ********************************************************************* *)
 (** {2 Preprocessed information} *)
@@ -108,7 +102,7 @@ type transfer =
 control point, and hyperedge identifiers are integers, with which are
 associated objects of type [transfer]. Global information associated with the
 graph is of type [info]. *)
-type graph = (unit,transfer,info) Graph.t
+type graph = (vertex,hedge,unit,transfer,info) PSHGraph.t
 
 (*  ********************************************************************* *)
 (** {2 Functions} *)
@@ -122,14 +116,14 @@ let add_equation (graph:graph) (torg:var array) (transfer:transfer) (dest:var)
   =
   Array.iter
     (begin fun var ->
-      if not (Graph.is_vertex graph var) then Graph.add_vertex graph var ()
+      if not (PSHGraph.is_vertex graph var) then PSHGraph.add_vertex graph var ()
     end)
     torg
   ;
-  if not (Graph.is_vertex graph dest) then Graph.add_vertex graph dest ();
+  if not (PSHGraph.is_vertex graph dest) then PSHGraph.add_vertex graph dest ();
   if transfer<>(Condition(Boolexpr.CST(false))) then begin
-    let info = Graph.info graph in
-    Graph.add_hedge graph info.counter transfer ~pred:torg ~succ:[|dest|];
+    let info = PSHGraph.info graph in
+    PSHGraph.add_hedge graph info.counter transfer ~pred:torg ~succ:[|dest|];
     info.counter <- info.counter + 1;
   end;
   ()

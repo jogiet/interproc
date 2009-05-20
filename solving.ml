@@ -12,8 +12,6 @@ open Format
 (** {2 Instanciated module and options} *)
 (*  ********************************************************************* *)
 
-module Fixpoint = MkFixpoint.Make(Equation.Graph)
-
 (*  ===================================================================== *)
 (** {3 Options} *)
 (*  ===================================================================== *)
@@ -33,85 +31,102 @@ let widening_descend = ref 2
   - an equation graph (forward or backward)
   - optionally, the result of a previous, dual analysis
   - a function [apply graph output manager hyperedge tabstract]
-  - a function [get_init]
+  - a function [abstract_init]
   - an APRON manager;
   - a debug level
 *)
 let make_fpmanager
   (graph: Equation.graph)
-  ~(output : ('a Apron.Abstract1.t, unit) Fixpoint.output option)
+  ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
   (apply :
     Equation.graph ->
-    output:('a Apron.Abstract1.t, unit) Fixpoint.output option ->
+    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
     'a Apron.Manager.t -> int -> 'a Apron.Abstract1.t array ->
       unit * 'a Apron.Abstract1.t)
-  (get_init : Spl_syn.point -> 'a Apron.Abstract1.t)
+  (abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
   (man:'abstract Apron.Manager.t)
   ~(debug:int)
   :
-  ('a Apron.Abstract1.t, unit) Fixpoint.manager
+  (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.manager
   =
-  let info = Equation.Graph.info graph in
+  let info = PSHGraph.info graph in
   {
-    MkFixpoint.bottom = begin fun vtx ->
+    (* Lattice operation *)
+    Fixpoint.bottom = begin fun vtx ->
       Apron.Abstract1.bottom man (Hashhe.find info.Equation.pointenv vtx)
     end;
-    MkFixpoint.canonical = begin fun vtx abs -> ()
+    Fixpoint.canonical = begin fun vtx abs -> ()
       (* Apron.Abstract1.canonicalize man abs *)
     end;
-    MkFixpoint.is_bottom = begin fun vtx abs ->
+    Fixpoint.is_bottom = begin fun vtx abs ->
       Apron.Abstract1.is_bottom man abs
     end;
-    MkFixpoint.is_leq = begin fun vtx abs1 abs2 ->
+    Fixpoint.is_leq = begin fun vtx abs1 abs2 ->
       Apron.Abstract1.is_leq man abs1 abs2
     end;
-    MkFixpoint.join = begin fun vtx abs1 abs2 ->
+    Fixpoint.join = begin fun vtx abs1 abs2 ->
       Apron.Abstract1.join man abs1 abs2
     end;
-    MkFixpoint.join_list = begin fun vtx labs ->
+    Fixpoint.join_list = begin fun vtx labs ->
       Apron.Abstract1.join_array man (Array.of_list labs)
     end;
-    MkFixpoint.widening = begin fun vtx abs1 abs2 ->
+    Fixpoint.widening = begin fun vtx abs1 abs2 ->
       Apron.Abstract1.widening man abs1 abs2
     end;
-    MkFixpoint.apply = begin fun hedge tx ->
+    (* Initialisation of equations *)
+    Fixpoint.abstract_init = abstract_init;
+    Fixpoint.arc_init = begin fun hedge -> () end;
+    (* Interpreting hyperedges *)
+    Fixpoint.apply = begin fun hedge tx ->
       apply graph ~output man hedge tx
     end;
-    MkFixpoint.arc_init = begin fun hedge -> () end;
-    MkFixpoint.get_init = get_init;
-    MkFixpoint.print_abstract = Apron.Abstract1.print;
-    MkFixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
-    MkFixpoint.print_vertex=PSpl_syn.print_point;
-    MkFixpoint.print_hedge=pp_print_int;
-    MkFixpoint.accumulate = true;
-    MkFixpoint.widening_first = !widening_first;
-    MkFixpoint.widening_start = !widening_start;
-    MkFixpoint.widening_freq = !widening_freq;
-    MkFixpoint.widening_descend = !widening_descend;
-    MkFixpoint.print_analysis=debug>=1;
-    MkFixpoint.print_step=debug>=2;
-    MkFixpoint.print_state=debug>=3;
-    MkFixpoint.print_postpre=debug>=4;
+    (* Printing functions *)
+    Fixpoint.print_vertex=PSpl_syn.print_point;
+    Fixpoint.print_hedge=pp_print_int;
+    Fixpoint.print_abstract = Apron.Abstract1.print;
+    Fixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
+    (* Fixpoint Options *)
+    Fixpoint.accumulate = true;
+    (* Widening Options *)
+    Fixpoint.widening_first = !widening_first;
+    Fixpoint.widening_start = !widening_start;
+    Fixpoint.widening_freq = !widening_freq;
+    Fixpoint.widening_descend = !widening_descend;
+    (* Printing Options *)
+    Fixpoint.print_fmt = Format.std_formatter;
+    Fixpoint.print_analysis=debug>=1;
+    Fixpoint.print_component=debug>=2;
+    Fixpoint.print_step=debug>=3;
+    Fixpoint.print_state=debug>=4;
+    Fixpoint.print_postpre=debug>=5;
+    Fixpoint.print_workingsets=debug>=6;
+    (* DOT Options *)
+    Fixpoint.dot_fmt = None;
+    Fixpoint.dot_vertex=PSpl_syn.print_point;
+    Fixpoint.dot_hedge=pp_print_int;
+    Fixpoint.dot_attrvertex=PSpl_syn.print_point;
+    Fixpoint.dot_attrhedge=(fun fmt hedge -> ());
   }
 
 (** Make an output graph filled with bottom abstract avlues *)
 let make_emptyoutput
-  (graph : ('a,'b,'c) Equation.Graph.t)
+  (graph : (Spl_syn.point,int,'a,'b,'c) PSHGraph.t)
   (manager : 'abstract Apron.Manager.t)
   :
-  ('abstract Apron.Abstract1.t,unit) Fixpoint.output
+  (Spl_syn.point, int, 'abstract Apron.Abstract1.t,unit) Fixpoint.output
   =
-  let info = Equation.Graph.info graph in
-  Equation.Graph.map graph
-    (begin fun vertex attr ~pred ~succ ->
+  let info = PSHGraph.info graph in
+  PSHGraph.map graph
+    (begin fun vertex attr ->
       Apron.Abstract1.bottom manager (Hashhe.find info.Equation.pointenv vertex)
     end)
-    (begin fun hedge arc ~pred ~succ -> () end)
+    (begin fun hedge arc -> () end)
     (begin fun info ->
       {
-	MkFixpoint.time = 0.0;
-	MkFixpoint.iterations = 0;
-	MkFixpoint.descendings = 0;
+	Fixpoint.time = 0.0;
+	Fixpoint.iterations = 0;
+	Fixpoint.descendings = 0;
+	Fixpoint.stable = false;
       }
     end)
 
@@ -308,21 +323,21 @@ module Forward = struct
   (** Main transfer function *)
   let apply
     (graph:Equation.graph)
-    ~(output : ('a Apron.Abstract1.t, unit) Fixpoint.output option)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
     (manager:'a Apron.Manager.t)
     (hedge:int)
     (tabs:'a Apron.Abstract1.t array)
     :
     unit * 'a Apron.Abstract1.t
     =
-    let transfer = Equation.Graph.attrhedge graph hedge in
+    let transfer = PSHGraph.attrhedge graph hedge in
     let abs = tabs.(0) in
     let dest = match output with
       | None -> None
       | Some(output) ->
-	  let tdest = Equation.Graph.succvertex graph hedge in
+	  let tdest = PSHGraph.succvertex graph hedge in
 	  assert(Array.length tdest = 1);
-	  let dest = Equation.Graph.attrvertex output tdest.(0) in
+	  let dest = PSHGraph.attrvertex output tdest.(0) in
 	  Some dest
     in
     let res =
@@ -346,57 +361,63 @@ module Forward = struct
 
   let compute
     (graph:Equation.graph)
-    ~(output : ('a Apron.Abstract1.t, unit) Fixpoint.output option)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
     (manager:'a Apron.Manager.t)
     ~(debug:int)
     :
-    ('a Apron.Abstract1.t, unit) Fixpoint.output
+    (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
     =
-    let info = Equation.Graph.info graph in
+    let info = PSHGraph.info graph in
     let sstart =
       let maininfo = Hashhe.find info.Equation.procinfo "" in
       let start = maininfo.Equation.pstart in
       begin match output with
       | None ->
-	  Equation.SetteP.singleton start
+	  PSette.singleton Equation.compare_point start
       | Some output ->
-	  let abstract = Equation.Graph.attrvertex output start in
+	  let abstract = PSHGraph.attrvertex output start in
 	  if Apron.Abstract1.is_bottom manager abstract then
-	    Equation.SetteP.empty
+	    PSette.empty Equation.compare_point 
 	  else
-	    (Equation.SetteP.singleton start)
+	    (PSette.singleton Equation.compare_point start)
       end
     in
-    if Equation.SetteP.is_empty sstart then begin
+    if PSette.is_empty sstart then begin
       make_emptyoutput graph manager
     end
     else begin
-      let get_init = begin fun vertex ->
+      let abstract_init = begin fun vertex ->
 	begin match output with
 	| None ->
 	    Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
 	| Some(output) ->
-	    Equation.Graph.attrvertex output vertex
+	    PSHGraph.attrvertex output vertex
 	end
       end
       in
       let fpmanager =
 	make_fpmanager graph ~output
-	  apply get_init
+	  apply abstract_init
 	  manager ~debug
       in
-      let graphi =
+      let fp =
 	if !iteration_guided then
 	  Fixpoint.analysis_guided
-	    fpmanager graph
-	    sstart
+	    fpmanager graph sstart	
+	    (fun filter  ->
+	      Fixpoint.make_strategy_default
+		~vertex_dummy:Equation.vertex_dummy
+		~hedge_dummy:Equation.hedge_dummy
+		~priority:(PSHGraph.Filter filter)
+		graph sstart)
 	else
-	  Fixpoint.analysis
-	    fpmanager graph
-	    sstart
-	    (Fixpoint.strategy_default graph sstart)
+	  Fixpoint.analysis_std
+	    fpmanager graph sstart
+	    (Fixpoint.make_strategy_default
+	      ~vertex_dummy:Equation.vertex_dummy
+	      ~hedge_dummy:Equation.hedge_dummy
+	      graph sstart)
       in
-      let fp = Fixpoint.output_of_graph graphi in
       fp
     end
 end
@@ -537,21 +558,21 @@ module Backward = struct
   (** Main transfer function *)
   let apply
     (graph:Equation.graph)
-    ~(output : ('a Apron.Abstract1.t, unit) Fixpoint.output option)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
     (manager:'a Apron.Manager.t)
     (hedge:int)
     (tabs:'a Apron.Abstract1.t array)
     :
     unit * 'a Apron.Abstract1.t
     =
-    let transfer = Equation.Graph.attrhedge graph hedge in
+    let transfer = PSHGraph.attrhedge graph hedge in
     let abs = tabs.(0) in
     let dest = match output with
       | None -> None
       | Some(output) ->
-	  let tdest = Equation.Graph.succvertex graph hedge in
+	  let tdest = PSHGraph.succvertex graph hedge in
 	  assert(Array.length tdest = 1);
-	  let dest = Equation.Graph.attrvertex output tdest.(0) in
+	  let dest = PSHGraph.attrvertex output tdest.(0) in
 	  Some dest
     in
     let res =
@@ -574,61 +595,67 @@ module Backward = struct
   (*  ===================================================================== *)
 
   let compute
-    (prog:Spl_syn.program)
-    (graph:Equation.graph)
-    ~(output : ('a Apron.Abstract1.t, unit) Fixpoint.output option)
-    (manager:'a Apron.Manager.t)
-    ~(debug:int)
-    :
-    ('a Apron.Abstract1.t, unit) Fixpoint.output
-    =
-    let info = Equation.Graph.info graph in
-    let sstart = ref Equation.SetteP.empty in
+      (prog:Spl_syn.program)
+      (graph:Equation.graph)
+      ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
+      (manager:'a Apron.Manager.t)
+      ~(debug:int)
+      :
+      (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
+      =
+    let info = PSHGraph.info graph in
+    let sstart = ref (PSette.empty Equation.compare_point) in
     List.iter
       (begin fun procedure ->
 	Spl_syn.iter_eltinstr
-	(begin fun (bpoint,instr) ->
-	  if instr.Spl_syn.instruction = Spl_syn.FAIL then begin
-	    let ok = match output with
-	      | None -> true
-	      | Some output ->
-		  let abstract = Equation.Graph.attrvertex output bpoint in
-		  not (Apron.Abstract1.is_bottom manager abstract)
-	    in
-	    if ok then
-	      sstart := Equation.SetteP.add bpoint !sstart;
-	  end
-	end)
-	procedure.Spl_syn.pcode;
+	  (begin fun (bpoint,instr) ->
+	    if instr.Spl_syn.instruction = Spl_syn.FAIL then begin
+	      let ok = match output with
+		| None -> true
+		| Some output ->
+		    let abstract = PSHGraph.attrvertex output bpoint in
+		    not (Apron.Abstract1.is_bottom manager abstract)
+	      in
+	      if ok then
+		sstart := PSette.add bpoint !sstart;
+	    end
+	  end)
+	  procedure.Spl_syn.pcode;
       end)
       prog.Spl_syn.procedures;
 
-    if Equation.SetteP.is_empty !sstart then begin
+    if PSette.is_empty !sstart then begin
       make_emptyoutput graph manager
     end
     else begin
-      let get_init = begin fun vertex ->
+      let abstract_init = begin fun vertex ->
 	begin match output with
 	| None ->
 	    Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
 	| Some(output) ->
-	    Equation.Graph.attrvertex output vertex
+	    PSHGraph.attrvertex output vertex
 	end
       end
       in
-      let fpmanager = make_fpmanager graph ~output apply get_init manager ~debug in
-      let graphi =
+      let fpmanager = make_fpmanager graph ~output apply abstract_init manager ~debug in
+      let fp =
 	if !iteration_guided then
 	  Fixpoint.analysis_guided
-	    fpmanager graph
-	    !sstart
+	    fpmanager graph !sstart	
+	    (fun filter  ->
+	      Fixpoint.make_strategy_default
+		~vertex_dummy:Equation.vertex_dummy
+		~hedge_dummy:Equation.hedge_dummy
+		~priority:(PSHGraph.Filter filter)
+		graph !sstart)
 	else
-	  Fixpoint.analysis
-	    fpmanager graph
-	    !sstart
-	    (Fixpoint.strategy_default graph !sstart)
+	  Fixpoint.analysis_std
+	    fpmanager graph !sstart
+	    (Fixpoint.make_strategy_default
+	      ~vertex_dummy:Equation.vertex_dummy
+	      ~hedge_dummy:Equation.hedge_dummy
+	      graph !sstart)
       in
-      let fp = Fixpoint.output_of_graph graphi in
       fp
     end
 end

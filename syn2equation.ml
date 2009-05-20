@@ -236,7 +236,7 @@ module Forward = struct
   let make (prog:Spl_syn.program) : Equation.graph =
 
     let info = make_info prog in
-    let graph = Equation.Graph.create 3 info in
+    let graph = Equation.create 3 info in
 
     let rec iter_block (procinfo:Equation.procinfo) (block:block) : unit
       =  
@@ -340,7 +340,7 @@ module Backward = struct
   let make (prog:Spl_syn.program) : Equation.graph =
 
     let info = make_info prog in
-    let graph = Equation.Graph.create 3 info in
+    let graph = Equation.create 3 info in
 
     let rec iter_block (procinfo:Equation.procinfo) (block:block) : unit
       =  

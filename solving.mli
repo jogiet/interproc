@@ -7,15 +7,8 @@
 *)
 
 (*  ********************************************************************* *)
-(** {2 Instanciated module and options} *)
+(** {2 Options} *)
 (*  ********************************************************************* *)
-
-module Fixpoint : (MkFixpoint.S with module Graph = Equation.Graph)
-(** Fixpoint equations solver *)
-
-(*  ===================================================================== *)
-(** {3 Options} *)
-(*  ===================================================================== *)
 
 val iteration_depth : int ref
   (** Depth of recursion in iteration. If the depth is deeper, one tries to
@@ -44,9 +37,9 @@ val widening_descend : int ref
 module Forward : sig
   val apply :
     Equation.graph ->
-    output:('a Apron.Abstract1.t, unit) Fixpoint.output option ->
+    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
     'a Apron.Manager.t ->
-    Equation.Graph.hedge -> 'a Apron.Abstract1.t array ->
+    Equation.hedge -> 'a Apron.Abstract1.t array ->
     unit * 'a Apron.Abstract1.t
       (** Applying a transfer function, given
 	- the equation graph ;
@@ -58,10 +51,10 @@ module Forward : sig
 
   val compute :
     Equation.graph ->
-    output:('a Apron.Abstract1.t, unit) Fixpoint.output option ->
+    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
     'a Apron.Manager.t ->
     debug:int ->
-    ('a Apron.Abstract1.t, unit) Fixpoint.output
+    (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
       (** Compute (post)fixpoint, given
 	- the equation graph;
 	- optionally, the result of a previous, backward analysis
@@ -77,18 +70,18 @@ end
 module Backward : sig
   val apply :
     Equation.graph ->
-    output:('a Apron.Abstract1.t, unit) Fixpoint.output option ->
+    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
     'a Apron.Manager.t ->
-    Equation.Graph.hedge -> 'a Apron.Abstract1.t array ->
+    Equation.hedge -> 'a Apron.Abstract1.t array ->
     unit * 'a Apron.Abstract1.t
       (** Applying a transfer function *)
 
   val compute :
     Spl_syn.program ->
     Equation.graph ->
-    output:('a Apron.Abstract1.t, unit) Fixpoint.output option ->
+    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
     'a Apron.Manager.t ->
     debug:int ->
-    ('a Apron.Abstract1.t, unit) Fixpoint.output
+    (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
       (** Compute (post)fixpoint *)
 end

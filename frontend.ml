@@ -63,7 +63,7 @@ let build_graphs
   if !debug>0 then
     printf "%sForward equation graph%s@   @[<v>%a@]@."
       (!Option.displaytags).precolorB (!Option.displaytags).postcolor
-      (Equation.Graph.print
+      (PSHGraph.print
 	PSpl_syn.print_point
 	pp_print_int
 	(fun fmt () -> pp_print_string fmt "()")
@@ -76,7 +76,7 @@ let build_graphs
   if !debug>0 then
     printf "%sBackward equation graph%s@   @[<v>%a@]@."
       (!Option.displaytags).precolorB (!Option.displaytags).postcolor
-      (Equation.Graph.print
+      (PSHGraph.print
 	PSpl_syn.print_point
 	pp_print_int
 	(fun fmt () -> pp_print_string fmt "()")
@@ -97,7 +97,7 @@ let compute_and_display
   let
     (previous
       :
-      ('a Apron.Abstract1.t, unit) Solving.Fixpoint.output option ref
+      (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ref
     )
     =
     ref None
@@ -129,7 +129,7 @@ let compute_and_display
       fprintf fmt "@[<v>%a@]@."
 	(PSpl_syn.print_program
 	  begin fun fmt (point:Spl_syn.point) ->
-	    let abs = Equation.Graph.attrvertex fp point in
+	    let abs = PSHGraph.attrvertex fp point in
 	    fprintf fmt "@[<hov>%s%a@ %a%s@]"
 	      (!Option.displaytags).precolorR
 	      PSpl_syn.print_point point

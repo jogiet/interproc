@@ -163,6 +163,11 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
 	" : display style (default: color)"
       );
       (
+	"-margin",
+	Arg.Int(fun n -> Format.set_margin n),
+	" : nb of columns for text display"
+      );
+      (
 	"-analysis",
 	Arg.String(begin fun str ->
 	  analysis := [];
