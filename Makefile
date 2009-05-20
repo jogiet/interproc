@@ -53,15 +53,12 @@ OBJx = $(MLMODULES:%=%.cmx)
 #---------------------------------------
 
 # Global rules
-all: interproc interproc.opt interprocf.opt
+all: interproc.byte interproc.opt interprocf.opt
 
-interproc: $(OBJ) interproc.cmo interprocrun
-	$(OCAMLC) -g -o $@ -use-runtime ./interprocrun $(OCAMLFLAGS) $(OCAMLINC) \
+interproc.byte: $(OBJ) interproc.cmo 
+	$(OCAMLC) -g -o $@ -custom $(OCAMLFLAGS) $(OCAMLINC) $(OCAMLLDFLAGS) \
 	bigarray.cma unix.cma camllib.cma fixpoint.cma gmp.cma		\
 	apron.cma polka.cma box.cma ppl.cma polkaGrid.cma fixpoint.cma $(OBJ) interproc.cmo
-
-interprocrun:
-	$(OCAMLC) -g -o $@ -make-runtime $(OCAMLINC) $(OCAMLLDFLAGS)
 
 interproc.opt: $(OBJx) interproc.cmx
 	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
@@ -73,24 +70,27 @@ interprocf.opt: $(OBJx) interproc.cmx
 
 install:
 	$(INSTALLd) $(PREFIX)/bin
-	for i in interproc interprocrun interproc.opt interprocf.opt; do \
+	for i in interproc.byte interproc.opt interprocf.opt; do \
 		$(INSTALL) $$i $(PREFIX)/bin; \
 	done
 
 distclean: clean
-	for i in interproc interprocrun interproc.opt interprocf.opt; do \
+	for i in interproc.byte interproc.opt interprocf.opt; do \
 		/bin/rm -f $(PREFIX)/bin/$$i; \
 	done
 
-interprocweb.cgi: $(OBJx) interprocweb.cmx 
+interprocweb.cgi: $(OBJx) interprocweb.cmx mainweb.cmx
 	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
-	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx 
+	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx mainweb.cmx
+interprocwebf.cgi: $(OBJx) interprocweb.cmx mainwebf.cmx 
+	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGSf) \
+	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx mainwebf.cmx 
 
 mostlyclean: clean
 	$(RM) -r *.pdf html Makefile.depend
 
 clean:
-	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc interprocrun interproc.opt interprocf.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
+	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc.byte interproc.opt interprocf.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
 
 dist: Makefile Makefile.config.model COPYING README $(MLSRC) interproc.ml interproc.mli interprocweb.ml interprocweb.mli manual.tex manual.bib interproc.tex mypanels.hlx examples manual.pdf 
 	(cd ..; tar zcvf $(HOME)/interproc.tgz $(^:%=interproc/%))
@@ -125,9 +125,15 @@ html: $(MLINT) $(MLSRC)
 	$(OCAMLDOC) $(OCAMLINC) -html -d html -colorize-code $(MLMODULES:%=%.mli)
 
 homepage: html interproc.pdf manual.pdf
+	hyperlatex -gif manual
 	hyperlatex manual	
-	cp -r html interproc.pdf manual.pdf $(HOME)/web/bjeannet-forge/interproc
+	cp -r html interproc.pdf manual.pdf *.ps *.png $(HOME)/web/bjeannet-forge/interproc
 	cp manual*.html $(HOME)/web/bjeannet-forge/interproc
+
+online: interprocweb.cgi interprocwebf.cgi 
+	chmod a+rX $^
+	scp $^ johns:/home/wwwpop-art/pub/interproc
+	scp -r examples/*.txt johns:/home/wwwpop-art/pub/interproc/interproc_examples
 
 #--------------------------------------------------------------
 # IMPLICIT RULES AND DEPENDENCIES
@@ -155,6 +161,6 @@ homepage: html interproc.pdf manual.pdf
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
 
 Makefile.depend: spl_yacc.ml spl_yacc.mli spl_lex.ml
-	$(OCAMLDEP) $(MLSRC) interproc.ml interproc.mli interprocweb.ml interprocweb.mli >Makefile.depend
+	$(OCAMLDEP) $(MLSRC) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
 
 -include Makefile.depend

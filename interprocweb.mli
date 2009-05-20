@@ -5,3 +5,9 @@
 
    Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
 *)
+
+type option = 
+  | Rational
+  | Floating
+
+val main : opt:option -> unit

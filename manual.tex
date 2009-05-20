@@ -96,7 +96,7 @@ The options are:
   \end{quote}
 \item [\texttt{-depth <int>}] depth of recursive iterations
   (default 2, may only be more). See
-  \xlink{Analyzer}{http://pop-art.inrialpes.fr/people/bjeannet/analyzer/}
+  \xlink{Fixpoint}{http://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/fixpoint/}
   library documentation.
 \item [\texttt{-guided <bool>}] if true, guided analysis of Gopand
   and Reps (default: false). See
@@ -104,7 +104,7 @@ The options are:
 \item [\texttt{-widening <bool><int><int><int>}] specifies usage
   of widening first heuristics, delay and frequency of widening,
   and nb. of descending steps (default: false 1 1 2). See
-  \xlink{Analyzer}{http://pop-art.inrialpes.fr/people/bjeannet/analyzer/}
+  \xlink{Fixpoint}{http://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/fixpoint/}
 \item [\texttt{-analysis <('f'|'b')+>}] sequence of forward and backward analyses to perform (default "f")
 \end{description}
 
@@ -236,9 +236,9 @@ variables.
   &\sor& id \\
   &\sor& \sx{unop} \sx{nexpr} \sor \sx{nexpr} \sx{binop} \sx{nexpr} \\
   &\sor& \tk{(} \sx{nexpr} \tk{)} \\
-  \sx{binop} &::=& (\tk{+}\texttt{|}\tk{-}\texttt{|}\tk{*}\texttt{|}\tk{/}\texttt{|}\tk{\%})[\tk{\_}(\tk{i}\texttt{|}\tk{f}\texttt{|}\tk{d}\texttt{|}\tk{l}\texttt{|}\tk{q})[\tk{,}(\tk{n}\texttt{|}\tk{0}\texttt{|}\tk{+oo}\texttt{|}\tk{-oo})]] \\
+  \sx{binop} &::=& (\tk{+}\texttt{|}\tk{-}\texttt{|}\tk{*}\texttt{|}\tk{/}\texttt{|}\tk{\%})[\tk{\_}(\tk{i}\texttt{|}\tk{f}\texttt{|}\tk{d}\texttt{|}\tk{l}\texttt{|}\tk{q})[\tk{,}(\tk{n}\texttt{|}\tk{0}\texttt{|}\tk{+oo}\texttt{|}\tk{-oo}\texttt{|}\tk{?})]] \\
   \sx{unop} &::=& \tk{-} \\
-  &\sor& (\pkw{cast}\texttt{|}\pkw{sqrt})[\tk{\_}(\tk{i}\texttt{|}\tk{f}\texttt{|}\tk{d}\texttt{|}\tk{l}\texttt{|}\tk{q})[\tk{,}(\tk{n}\texttt{|}\tk{0}\texttt{|}\tk{+oo}\texttt{|}\tk{-oo})]] \\
+  &\sor& (\pkw{cast}\texttt{|}\pkw{sqrt})[\tk{\_}(\tk{i}\texttt{|}\tk{f}\texttt{|}\tk{d}\texttt{|}\tk{l}\texttt{|}\tk{q})[\tk{,}(\tk{n}\texttt{|}\tk{0}\texttt{|}\tk{+oo}\texttt{|}\tk{-oo}\texttt{|}\tk{?})]] \\
   \sx{coeff} &::=& \sx{float} \sor \sx{rational} \\
   \sx{float} &::=& C/OCaml floating-point number syntax \\
   \sx{rational} &::=& \sx{integer} \sor \sx{integer}\tk{/}\sx{integer}
@@ -299,7 +299,8 @@ numerical type, the second one the rounding mode.
       n & nearest \\
       0 & towards zero \\
       +oo & towards infinity \\
-      -oo & towards minus infinity
+      -oo & towards minus infinity \\
+      ? & emulates any rounding mode
     \end{tabular}
   \end{quote}
 \end{itemize}
@@ -527,17 +528,6 @@ The transition relation is defined as follows:
   $$
   $$
   \begin{array}{c}
-    (k) \texttt{~(y0,...,yN)=f(x0,...xM)~} (k') \\
-    \epsilon_\mathrm{start}(\vec{pin}) = \epsilon(\vec{x}) \\
-    \epsilon' = \epsilon[\vec{y} \mapsto \epsilon_\mathrm{exit}(\vec{pout}) \\ \hline
-    \omega\cdot (k,\epsilon) \rightarrow \omega\cdot (k',\epsilon) \cdot (k^f_\mathrm{start},\epsilon_\mathrm{start}) \\
-     \omega\cdot (k',\epsilon) \cdot (k^f_\mathrm{exit},\epsilon_\mathrm{exit})
-     \rightarrow
-     \omega\cdot (k',\epsilon')
-  \end{array}
-  $$
-  $$
-  \begin{array}{c}
     (k) \texttt{~if bexpr then~} (k_1)\ldots(k'_1) \texttt{~else~} (k_2)\ldots (k'_2) \texttt{~;~} (k')\\ \hline
     (k,\epsilon) \rightarrow (k_1,\epsilon) \texttt{~if~} true\in\sem{bexpr}^b(\epsilon) \\
     (k,\epsilon) \rightarrow (k_2,\epsilon) \texttt{~if~} false\in\sem{bexpr}^b(\epsilon) \\
@@ -551,6 +541,17 @@ The transition relation is defined as follows:
     (k,\epsilon) \rightarrow (k_1,\epsilon) \texttt{~if~} true\in\sem{bexpr}^b(\epsilon) \\
     (k,\epsilon) \rightarrow (k_2,\epsilon) \texttt{~if~} false\in\sem{bexpr}^b(\epsilon) \\
     (k'_1,\epsilon) \rightarrow (k,\epsilon)
+  \end{array}
+  $$
+  $$
+  \begin{array}{c}
+    (k) \texttt{~(y0,...,yN)=f(x0,...xM)~} (k') \\
+    \epsilon_\mathrm{start}(\vec{pin}) = \epsilon(\vec{x}) \\
+    \epsilon' = \epsilon[\vec{y} \mapsto \epsilon_\mathrm{exit}(\vec{pout}) \\ \hline
+    \omega\cdot (k,\epsilon) \rightarrow \omega\cdot (k',\epsilon) \cdot (k^f_\mathrm{start},\epsilon_\mathrm{start}) \\
+     \omega\cdot (k',\epsilon) \cdot (k^f_\mathrm{exit},\epsilon_\mathrm{exit})
+     \rightarrow
+     \omega\cdot (k',\epsilon')
   \end{array}
   $$
 \end{image}
