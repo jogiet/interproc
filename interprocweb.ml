@@ -12,12 +12,20 @@ open Cgi
 open Sscookie
 open Date
 
+type option =
+  | Rational
+  | Floating
+
 (* you will need to change the following address *)
 module Link = struct
-  let (url:string) =    
+  let (url:string) =
     Html.link
       "http://pop-art.inrialpes.fr/interproc/interprocweb.cgi"
       "interprocweb"
+  let (urlf:string) =
+    Html.link
+      "http://pop-art.inrialpes.fr/interproc/interprocwebf.cgi"
+      "interprocwebf"
   let (apron:string) =
     Html.link
       "http://apron.cri.ensmp.fr/library/"
@@ -32,146 +40,32 @@ module Link = struct
       "Interproc"
   let (simple_syntax:string) =
     Html.link
-      "http://bjeannet.gforge.inria.fr/interproc/manual_syntax.html"
+      "http://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/interproc/manual_syntax.html"
       "``Simple'' language syntax"
   let (program_examples:string) =
-    Print.sprintf "%s %s %s %s"
-      (Html.link 
-	"ackerman.txt" "ackerman")
+    Print.sprintf "%s %s %s %s %s %s %s %s"
       (Html.link
-	"maccarthy91.txt" "maccarthy91")
+	"interproc_examples/incr.txt" "incr")
       (Html.link
-	"heapsort.txt" "heapsort")
+	"interproc_examples/ackerman.txt" "ackerman")
       (Html.link
-	"symmetricalstairs.txt" "symmetricalstairs")
+	"interproc_examples/fact.txt" "fact")
+      (Html.link
+	"interproc_examples/numerical.txt" "numerical")
+      (Html.link
+	"interproc_examples/numerical2.txt" "numerical2")
+      (Html.link
+	"interproc_examples/maccarthy91.txt" "maccarthy91")
+      (Html.link
+	"interproc_examples/heapsort.txt" "heapsort")
+      (Html.link
+	"interproc_examples/symmetricalstairs.txt" "symmetricalstairs")
 
   let (ocamlhtml:string) =
     Html.link
       "http://www.eleves.ens.fr/home/mine/ocamlhtml/"
       "OCamlHtml library"
 end
-
-(* ********************************************************************** *)
-(* examples *)
-(* ********************************************************************** *)
-
-let ackerman = 
-"proc ack(x:int,y:int) returns (res:int)\r\n"^
-"var t:int, t1:int;\r\n"^
-"begin\r\n"^
-"  assume x>=0 and y>=0;\r\n"^
-"  if (x<=0) then /* x<=0 instead of x==0 (more precise) */\r\n"^
-"    res = y+1;\r\n"^
-"  else\r\n"^
-"    if (y<=0) then /* y<=0 instead of x==0 (more precise) */\r\n"^
-"      t1 = x-1;\r\n"^
-"      t = 1;\r\n"^
-"      res = ack(t1,t);\r\n"^
-"    else\r\n"^
-"      t1 = y-1;\r\n"^
-"      t = ack(x,t1);\r\n"^
-"      t1 = x-1;\r\n"^
-"      res = ack(t1,t);\r\n"^
-"    endif ;\r\n"^
-"  endif;\r\n"^
-"end\r\n"^
-"\r\n"^
-"var a:int, b:int, r:int;\r\n"^
-"begin\r\n"^
-"  r = ack(a,b);\r\n"^
-"end\r\n"
-
-let maccarthy91 = 
-"/* exact semantics:\r\n"^
-"   if (n>=101) then n-10 else 91 */\r\n"^
-"proc MC(n:int) returns (r:int)\r\n"^
-"var t1:int, t2:int;\r\n"^
-"begin\r\n"^
-"  if (n>100) then\r\n"^
-"     r = n-10;\r\n"^
-"  else\r\n"^
-"     t1 = n+11;\r\n"^
-"     t2 = MC(t1);\r\n"^
-"     r = MC(t2);\r\n"^
-"  endif;\r\n"^
-"end\r\n"^
-"\r\n"^
-"var a:int, b:int;\r\n"^
-"begin\r\n"^
-"  b = MC(a);\r\n"^
-"end\r\n"
-
-let heapsort = 
-"proc div2(a:int) returns (b:int)\r\n"^
-"begin\r\n"^
-"  assume (a-2*b>=0 and a-2*b<=1); /* trick to encode b = a div 2 */\r\n"^
-"end\r\n"^
-"\r\n"^
-"proc heapsort(N:int) returns (res:int)\r\n"^
-"var L:int,R:int,I:int,J:int,\r\n"^
-"continue:int,nondet:int;\r\n"^
-"begin\r\n"^
-"  assume N>=2;\r\n"^
-"  L = div2(N);\r\n"^
-"  L = L+1;\r\n"^
-"  if (L>=2) then\r\n"^
-"    L = L-1; /* K = T[L]; */\r\n"^
-"  else\r\n"^
-"    /* K = T[R]; T[R] = T[1]; */\r\n"^
-"    R = R-1;\r\n"^
-"  endif;\r\n"^
-"  while (R>=2) do\r\n"^
-"    I = L;\r\n"^
-"    J = 2*I;\r\n"^
-"    continue = 1;\r\n"^
-"    while (J<=R and continue>0) do\r\n"^
-"      if (J<=R-1) then\r\n"^
-"	if /* T[J]<T[j-1] */ brandom then\r\n"^
-"	  J = J+1;\r\n"^
-"	endif;\r\n"^
-"      endif;\r\n"^
-"      if /* K>=T[J] */ brandom then\r\n"^
-"	continue=0;\r\n"^
-"      else\r\n"^
-"	/* T[I]=T[J]; */\r\n"^
-"	I = J;\r\n"^
-"	J = 2*J;\r\n"^
-"      endif;\r\n"^
-"    done;\r\n"^
-"    /* T[I] = K; */\r\n"^
-"    if (L>=2) then\r\n"^
-"      L = L-1; /* K = T[L]; */\r\n"^
-"    else\r\n"^
-"      /* K = T[R]; T[R]=T[1]; */\r\n"^
-"      R = R-1;\r\n"^
-"    endif;\r\n"^
-"    /* T[1] = K; */\r\n"^
-"  done;\r\n"^
-"end\r\n"^
-"\r\n"^
-"var N:int,res:int;\r\n"^
-"begin\r\n"^
-"  res = heapsort(N);\r\n"^
-"end\r\n"
-
-let symmetricalstairs = 
-"var x:int,y:int;\r\n"^
-"\r\n"^
-"begin\r\n"^
-"  x = 0;\r\n"^
-"  y = 0;\r\n"^
-"  while (x<=99) do\r\n"^
-"    if x<=49 then\r\n"^
-"      x = x+1;\r\n"^
-"      y = y+1;\r\n"^
-"    else\r\n"^
-"      x = x+1;\r\n"^
-"      y = y-1;\r\n"^
-"    endif;\r\n"^
-"  done;\r\n"^
-"  if y<0 then fail; endif;\r\n"^
-"end\r\n"
-
 
 (* ********************************************************************** *)
 (* analyze *)
@@ -183,7 +77,7 @@ let myescape_html s =
     if s.[!i]='<' then begin
       if (String.sub s (!i+1) 11)="span style=" then begin
 	let index_end = String.index_from s (!i + 12) '>' in
-	Buffer.add_string buf 
+	Buffer.add_string buf
 	  (String.sub s !i (index_end + 1 - !i));
 	i := index_end + 1;
       end
@@ -197,9 +91,9 @@ let myescape_html s =
       end
     end
     else begin
-      if s.[!i]='>' then Buffer.add_string buf "&gt;" 
+      if s.[!i]='>' then Buffer.add_string buf "&gt;"
       else if s.[!i]='&' then Buffer.add_string buf "&amp;"
-      else if s.[!i]='"' then Buffer.add_string buf "&quot;" 
+      else if s.[!i]='"' then Buffer.add_string buf "&quot;"
       else Buffer.add_char buf s.[!i]
       ;
       incr i;
@@ -209,12 +103,12 @@ let myescape_html s =
 
 let analyze (progtext:string) =
   let d = Date.get_date ()
-  and e = Date.get_date () 
+  and e = Date.get_date ()
   in
   Date.add_minutes e 15;
   Html.h1 "Analysis Result";
 
-  Html.p ("Run "^Link.url^" ?");
+  Html.p ("Run "^Link.url^" or "^Link.urlf^" ?");
 
   let buffer = Buffer.create (String.length progtext) in
   let (output:Format.formatter) = Format.formatter_of_buffer buffer in
@@ -224,7 +118,7 @@ let analyze (progtext:string) =
     let lexbuf = Lexing.from_string progtext in
     let prog = Frontend.parse_lexbuf output lexbuf in
     (* Computing solution *)
-    Frontend.analyze_display output prog;
+    Frontend.analyze_and_display output prog;
     ()
   with
   | Exit -> ()
@@ -243,27 +137,44 @@ let analyze (progtext:string) =
   Html.h2 "Source";
   Html.pre progtext;
 
-  Html.p ("Run "^Link.url^" ?");
+  Html.p ("Run "^Link.url^" or "^Link.urlf^" ?");
   ()
 
 (* ********************************************************************** *)
 (* frontpage *)
 (* ********************************************************************** *)
 
-let frontpage () =
-  Html.h1 "The Interproc Analyzer";
+let frontpage ~(opt:option) =
+  Html.h1 (match opt with
+  | Rational -> "The Interproc Analyzer"
+  | Floating -> "The Interprocf Analyzer"
+  );
   Html.p
     (Printf.sprintf "\
 This is a web interface to the %s analyzer connected \
 to the %s and the %s, whose goal is to demonstrate the features \
 of the APRON library and, to a less extent, of the Analyzer fixpoint engine, \
-in the static analysis field."
+in the static analysis field.<br><br> \
+There are two compiled versions: %s, \
+in which all the abstract domains use underlying multiprecision \
+integer/rational numbers, and %s, \
+in which box and octagon domains use underlying floating-point \
+numbers in safe way.<br><br>This is the <b>%s</b> version"
       Link.interproc
       Link.apron
       Link.fixpoint
+      Link.url
+      Link.urlf
+      (match opt with
+      | Rational -> "Interproc"
+      | Floating -> "Interprocf"
+      )
     );
-  Html.form_begin ~meth:Multipart "interprocweb.cgi";
-
+  Html.form_begin ~meth:Multipart
+    (match opt with
+    | Rational -> "http://pop-art.inrialpes.fr/interproc/interprocweb.cgi";
+    | Floating -> "http://pop-art.inrialpes.fr/interproc/interprocwebf.cgi")
+  ;
   Html.h2 "Arguments";
   Html.p ("\
 Please type a program, upload a file from your hard-drive, \
@@ -274,14 +185,19 @@ or choose one the provided examples:"
   Html.form_menu "example"
     [
       Option (None,"none",         "user-supplied",  true);
-      Option (None,"ackerman",     "Ackerman",     false);
-      Option (None,"maccarthy91",  "Mac Carthy 91",      false);
-      Option (None,"heapsort",     "Heap Sort", false);
-      Option (None,"symmetricalstairs", "Symmetrical Stairs", false);
+      Option (None,"interproc_examples/incr.txt",     "Incr",     false);
+      Option (None,"interproc_examples/ackerman.txt",     "Ackerman",     false);
+      Option (None,"interproc_examples/fact.txt",         "Factorial",     false);
+      Option (None,"interproc_examples/maccarthy91.txt",  "Mac Carthy 91",      false);
+      Option (None,"interproc_examples/heapsort.txt",     "Heap Sort", false);
+      Option (None,"interproc_examples/symmetricalstairs.txt", "Symmetrical Stairs", false);
+      Option (None,"interproc_examples/numerical.txt", "Numerical example", false);
+      Option (None,"interproc_examples/numerical2.txt", "Numerical example 2", false);
     ];
   Html.br ();
   Html.form_textarea ~default:"/* type your program here ! */" "text" 15 60;
   Html.br ();
+  print_string "Numerical Abstract Domain: ";
   Html.form_menu "abstraction"
     [
       Option (None, "none", "Choose an Abstract Domain:", false);
@@ -294,15 +210,16 @@ or choose one the provided examples:"
       Option (None, "pplgrid", "linear congruences (PPL)", false);
       Option (None, "polkagrid", "convex polyhedra + linear congruences", false);
     ];
+  print_string "<br>Kind of Analysis: ";
   Html.form_text
     ~size:6
     ~maxlength:6
     ~default:"f"
     "analysis"
   ;
-  print_string " Analysis type"; 
+  print_string "(sequence of forward and/or backward analysis)";
 
-  print_string "<br>Iterations/Widening options:<br>";
+  print_string "<br><br>Iterations/Widening options:<br>";
   Html.form_checkbox
     ~checked:false
     "guided"
@@ -343,7 +260,7 @@ Hit the OK button to proceed: ";
 
 
   Html.form_end ();
-  
+
   Html.h2 Link.simple_syntax;
   Html.p (Print.sprintf "Here are some program examples: %s" Link.program_examples);
 
@@ -374,7 +291,7 @@ freely available"
 (* main *)
 (* ********************************************************************** *)
 
-let main () =
+let mainpage ~(opt:option) =
   try
     let args = Cgi.get_cgi_args () in
 (*
@@ -400,7 +317,7 @@ let main () =
 	  ("filecontent",Some "")::
 	  ("example",Some "none")::
 	  ("text",Some text)::
-	  args 
+	  args
 	->
 	  (text,args)
       | ("file",_)::
@@ -413,21 +330,27 @@ let main () =
 
       | ("file",_)::
 	  ("filecontent",_)::
-	  ("example",Some e)::
+	  ("example",Some filename)::
 	  ("text",_ )::
 	  args
 	->
-	  let text = match e with
-	    | "ackerman"   -> ackerman
-	    | "maccarthy91"     -> maccarthy91
-	    | "heapsort" -> heapsort
-	    | "symmetricalstairs" -> symmetricalstairs
-	    | _ -> "begin\n  end\n"
-	  in
+	  let file = open_in filename in
+	  let buffer = Buffer.create 1024 in
+	  begin
+	    try
+	      while true do
+		let line = input_line file in
+		Buffer.add_string buffer line;
+		Buffer.add_string buffer "\r\n";
+	      done
+	    with 
+	    | End_of_file -> close_in file
+	  end;
+	  let text = Buffer.contents buffer in
 	  (text,args)
       | _ -> raise Exit
     in
- 
+
     Solving.iteration_guided := false;
     Solving.widening_first := false;
 
@@ -449,10 +372,10 @@ let main () =
 	    end)
 	    text;
 	    Option.analysis := List.rev !Option.analysis;
-	    if !Option.analysis=[] then 
+	    if !Option.analysis=[] then
 	      Option.analysis := [Option.Forward]
 	    ;
- 	| ("guided",Some "on") ->
+	| ("guided",Some "on") ->
 	    Solving.iteration_guided := true
 	| ("widening_first",Some "on") ->
 	    Solving.widening_first := true
@@ -468,15 +391,18 @@ let main () =
     ;
     analyze text
   with Exit ->
-    frontpage ()
+    frontpage ~opt
 
-let _ =
+let main ~(opt:option) =
   Cgi.set_timeout 15;
 
-  Sscookie.clean_cookies "interprochtml";
-
+  Sscookie.clean_cookies
+    (match opt with
+    | Rational -> "interprochtml";
+    | Floating -> "interprocfhtml"
+    );
   Http.http_header ();
-  
+
   Html.html_begin
     ~lang:"en"
     ~author:"Antoine Min&eacute and Bertrand Jeannet"
@@ -485,9 +411,9 @@ CGI interface to the Interproc static analyzer, \
 illustrating the use of the APRON Abstract Domain Library"
     "Interproc Analyzer"
   ;
-  main ();
-  html_end
-    ~author:"Antoine Min&eacute and Bertrand Jeannet"
+  mainpage ~opt;
+  Html.html_end
+    ~author:"Bertrand Jeannet"
     ~email:"bjeannet@NOSPAM inrialpes.fr"
     ()
   ;
