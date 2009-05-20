@@ -120,7 +120,7 @@ rule token = parse
 	  let str = Lexing.lexeme lexbuf in
 	  TK_MPQF(Mpqf.of_string str)
 	}
-    | ['0'-'9']* ('.' ['0'-'9']+) (['e' 'E'] ['+' '-']? ['0'-'9']+)?
+    | ['0'-'9']* ('.' ['0'-'9']*) (['e' 'E'] ['+' '-']? ['0'-'9']+)?
 	{
 	  let str = Lexing.lexeme lexbuf in
 	  TK_FLOAT(float_of_string str)
