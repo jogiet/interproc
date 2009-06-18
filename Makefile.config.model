@@ -34,6 +34,9 @@ CAMLIDL_PREFIX = /usr
 # Where to find APRON ($(APRON_PREFIX)/include, $(APRON_PREFIX)/lib)
 APRON_PREFIX = /usr/local
 
+# Where to find MLGMPIDL ($(MLGMPIDL_PREFIX)/include, $(MLGMPIDL_PREFIX)/lib)
+MLGMPIDL_PREFIX = /usr/local
+
 # Where to find PPL ($(PPL_PREFIX)/include, $(PPL_PREFIX)/lib
 #
 PPL_PREFIX = /usr/local
