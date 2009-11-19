@@ -93,15 +93,18 @@ type transfer =
       (** Filtering of a predicate by a Boolean expression *)
   | Call of procinfo * procinfo * (Apron.Var.t array) * (Apron.Var.t array)
       (** Procedure call, of the form
-	[Call(callerinfo,calleeinfo,actual input parameters,actual output parameters)] *)
+	  [Call(callerinfo,calleeinfo,actual input parameters,actual
+	  output parameters)] *)
   | Return of procinfo * procinfo * (Apron.Var.t array) * (Apron.Var.t array)
       (** Procedure return, of the form
-	[Call(callerinfo,calleeinfo,actual input parameters,actual output parameters)] *)
+	  [Call(callerinfo,calleeinfo,actual input parameters,actual
+	  output parameters)] *)
 
-(** Equation system, represented by a graph, where vertex identifiers are
-control point, and hyperedge identifiers are integers, with which are
-associated objects of type [transfer]. Global information associated with the
-graph is of type [info]. *)
+(** Equation system, represented by a graph, where vertex
+    identifiers are control point, and hyperedge identifiers are
+    integers, with which are associated objects of type
+    [transfer]. Global information associated with the graph is of
+    type [info]. *)
 type graph = (vertex,hedge,unit,transfer,info) PSHGraph.t
 
 (*  ********************************************************************* *)

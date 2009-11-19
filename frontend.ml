@@ -161,7 +161,14 @@ let analyze_and_display
       (Oct.manager_alloc ()) 
   | PolkaLoose ->
       compute_and_display fmt prog fgraph bgraph
-      (Polka.manager_alloc_loose ()) 
+      (let man = Polka.manager_alloc_loose () in
+(*
+      let wideningopt = Apron.Manager.get_funopt man Apron.Manager.Funid_widening in
+      let wideningopt = { wideningopt with Apron.Manager.algorithm = 1 } in
+      Apron.Manager.set_funopt man Apron.Manager.Funid_widening wideningopt;
+*)
+      man
+      ) 
   | PolkaStrict ->
       compute_and_display fmt prog fgraph bgraph
       (Polka.manager_alloc_strict ()) 
@@ -178,8 +185,10 @@ let analyze_and_display
       compute_and_display fmt prog fgraph bgraph
       (Ppl.manager_alloc_grid ()) 
   | PolkaGrid ->
+      let man1 = Polka.manager_alloc_loose () in
+      let man2 = Ppl.manager_alloc_grid () in
       compute_and_display fmt prog fgraph bgraph
-      (PolkaGrid.manager_alloc_loose ()) 
+      (PolkaGrid.manager_alloc man1 man2) 
   end
 
 

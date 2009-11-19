@@ -174,7 +174,7 @@ let print_declarations fmt list =
 
 let print_procedure print_comment fmt proc =
   if proc.pname="" then begin
-    fprintf fmt "@[<v>var %a@ begin@   %a@ end@ @]"
+    fprintf fmt "@[<v>var %a;@ begin@   %a@ end@ @]"
       print_declarations proc.plocal
       (print_block print_comment) proc.pcode
   end
