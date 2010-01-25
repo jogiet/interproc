@@ -224,12 +224,12 @@ or choose one the provided examples:"
     ~checked:false
     "guided"
   ;
-  print_string "guided iterations<br>";
+  print_string "guided iterations ";
   Html.form_checkbox
     ~checked:false
     "widening_first"
   ;
-  print_string "widening first ";
+  print_string "widening first<br>";
   Html.form_text
     ~size:2
     ~maxlength:2
@@ -243,14 +243,22 @@ or choose one the provided examples:"
     ~default:"1"
     "widening_frequency"
   ;
-  print_string " widening frequency<br>";
+  print_string " widening frequency ";
   Html.form_text
     ~size:2
     ~maxlength:2
     ~default:"2"
     "descending"
   ;
-  print_string "descending steps<br>";
+  print_string " descending steps<br>";
+
+  Html.form_text
+    ~size:2
+    ~maxlength:2
+    ~default:"0"
+    "debug"
+  ;
+  print_string " debugging level (0 to 5)<br>";
 
   print_string "\
 <p>\n\
@@ -385,6 +393,8 @@ let mainpage ~(opt:option) =
 	    Solving.widening_freq := int_of_string text;
 	| ("descending",Some text) ->
 	    Solving.widening_descend := int_of_string text;
+	| ("debug",Some text) ->
+	    Option.debug := int_of_string text;
 	| _ -> ()
       end)
       args
