@@ -21,24 +21,23 @@ LCFLAGS = \
 
 
 OCAMLLDFLAGS = \
--g -noautolink unix.cma bigarray.cma camllib.cma fixpoint.cma gmp.cma apron.cma box.cma oct.cma polka.cma ppl.cma polkaGrid.cma -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml -lboxMPQ -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
+-g -noautolink unix.cma bigarray.cma camllib.cma fixpoint.cma gmp.cma apron.cma boxMPQ.cma octMPQ.cma polkaMPQ.cma ppl.cma polkaGrid.cma -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml -lboxMPQ -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
 
 OCAMLOPTLDFLAGS = \
--g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa box.cmxa oct.cmxa polka.cmxa ppl.cmxa polkaGrid.cmxa \
+-g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa boxMPQ.cmxa octMPQ.cmxa polkaMPQ.cmxa ppl.cmxa polkaGrid.cmxa \
 -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml -lboxMPQ -lapron_caml_debug -lapron_debug -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
 
 OCAMLOPTLDFLAGSf = \
--g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa box.cmxa oct.cmxa polka.cmxa ppl.cmxa polkaGrid.cmxa \
+-g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa boxD.cmxa octD.cmxa polkaMPQ.cmxa ppl.cmxa polkaGrid.cmxa \
 -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolkaMPQ_caml -lpolkaMPQ -loctD_caml -loctD -lboxD_caml -lboxD -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
 
 OCAMLINC = \
 -I $(OCAMLHTML_INSTALL)/lib \
 -I $(CAMLLIB_PREFIX)/lib \
+-I $(FIXPOINT_PREFIX)/lib \
 -I $(APRON_PREFIX)/lib \
 -I $(MLGMPIDL_PREFIX)/lib \
--I $(CAML_PREFIX)/lib/ocaml \
 -I $(CAMLIDL_PREFIX)/lib/ocaml
-
 
 MLMODULES = spl_syn pSpl_syn spl_yacc spl_lex boolexpr equation syn2equation solving option frontend
 MLSRC =  $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli)
@@ -56,17 +55,16 @@ OBJx = $(MLMODULES:%=%.cmx)
 all: interproc.byte interproc.opt interprocf.opt
 
 interproc.byte: $(OBJ) interproc.cmo 
-	$(OCAMLC) -g -o $@ -custom $(OCAMLFLAGS) $(OCAMLINC) $(OCAMLLDFLAGS) \
-	bigarray.cma unix.cma camllib.cma fixpoint.cma gmp.cma		\
-	apron.cma polka.cma box.cma ppl.cma polkaGrid.cma fixpoint.cma $(OBJ) interproc.cmo
+	$(OCAMLC) -g -o $@ -custom $(OCAMLFLAGS) $(OCAMLINC) \
+	$(OCAMLLDFLAGS) fixpoint.cma $(OBJ) interproc.cmo
 
 interproc.opt: $(OBJx) interproc.cmx
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
-	fixpoint.cmxa $(OBJx) interproc.cmx
+	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) \
+	$(OCAMLOPTLDFLAGS) fixpoint.cmxa $(OBJx) interproc.cmx
 
 interprocf.opt: $(OBJx) interproc.cmx
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGSf) \
-	fixpoint.cmxa $(OBJx) interproc.cmx
+	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) \
+	$(OCAMLOPTLDFLAGSf) fixpoint.cmxa $(OBJx) interproc.cmx
 
 install:
 	$(INSTALLd) $(PREFIX)/bin
