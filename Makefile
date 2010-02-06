@@ -25,7 +25,7 @@ OCAMLLDFLAGS = \
 
 OCAMLOPTLDFLAGS = \
 -g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa boxMPQ.cmxa octMPQ.cmxa polkaMPQ.cmxa ppl.cmxa polkaGrid.cmxa \
--cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml -lboxMPQ -lapron_caml_debug -lapron_debug -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
+-cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml -lboxMPQ -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
 
 OCAMLOPTLDFLAGSf = \
 -g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa boxD.cmxa octD.cmxa polkaMPQ.cmxa ppl.cmxa polkaGrid.cmxa \
