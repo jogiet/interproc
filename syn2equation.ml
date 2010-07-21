@@ -39,16 +39,16 @@ let convert (lvartyp:(var*typ) list) : var array
     (List.map (fun (var,typ) -> var) lvartyp)
 
 (** Add to an environment a list of variables *)
-let add_env 
-  (env:Apron.Environment.t) 
-  (lvartyp:(var*typ) list) 
-  : 
+let add_env
+  (env:Apron.Environment.t)
+  (lvartyp:(var*typ) list)
+  :
   Apron.Environment.t
   =
-  let (lint,lreal) = 
+  let (lint,lreal) =
     List.fold_left
-      (begin fun (lint,lreal) (var,typ) -> 
-	if typ = INT then 
+      (begin fun (lint,lreal) (var,typ) ->
+	if typ = INT then
 	  (var::lint,lreal)
 	else
 	  (lint,var::lreal)
@@ -56,7 +56,7 @@ let add_env
       ([],[])
       lvartyp
   in
-  Apron.Environment.add env 
+  Apron.Environment.add env
     (Array.of_list lint)
     (Array.of_list lreal)
 
@@ -80,7 +80,7 @@ let make_procinfo (proc:procedure) : Equation.procinfo
   let penv = add_env penv proc.Spl_syn.poutput in
   let penv = add_env penv proc.Spl_syn.plocal in
 
-  let poutput_tmp = 
+  let poutput_tmp =
     Array.mapi
       (begin fun i var ->
 	Apron.Var.of_string (Format.sprintf "_%%out%i%%_" i)
@@ -155,7 +155,7 @@ let negate_texpr (texpr:Apron.Texpr1.t) : Apron.Texpr1.t
   =
   let expr = Apron.Texpr1.to_expr texpr in
   let nexpr = match expr with
-    | Apron.Texpr1.Unop(Apron.Texpr1.Neg,e,typ,round) -> 
+    | Apron.Texpr1.Unop(Apron.Texpr1.Neg,e,typ,round) ->
 	e
     | _ ->
 	Apron.Texpr1.Unop(
@@ -182,29 +182,29 @@ let tcons_of_cons env (cons:Spl_syn.cons) : Apron.Tcons1.t
   =
   let (expr1,typ,expr2) = cons in
   let (typ,expr) = match typ with
-  | EQ -> 
+  | EQ ->
       (Apron.Tcons1.EQ,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr1,expr2,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
-  | NEQ -> 
+  | NEQ ->
       (Apron.Tcons1.DISEQ,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr1,expr2,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
-  | GEQ -> 
+  | GEQ ->
       (Apron.Tcons1.SUPEQ,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr1,expr2,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
-  | GT -> 
+  | GT ->
       (Apron.Tcons1.SUP,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr1,expr2,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
-  | LEQ -> 
+  | LEQ ->
       (Apron.Tcons1.SUPEQ,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr2,expr1,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
-  | LT -> 
+  | LT ->
       (Apron.Tcons1.SUP,
        Apron.Texpr1.Binop(Apron.Texpr1.Sub,expr2,expr1,Apron.Texpr1.Real, Apron.Texpr1.Rnd))
   in
   Apron.Tcons1.make (Apron.Texpr1.of_expr env expr) typ
-      
-let rec boolexpr_of_bexpr env (bexpr:Spl_syn.bexpr) 
-  : 
+
+let rec boolexpr_of_bexpr env (bexpr:Spl_syn.bexpr)
+  :
   Apron.Tcons1.t Boolexpr.t
   =
   match bexpr with
@@ -218,11 +218,11 @@ let rec boolexpr_of_bexpr env (bexpr:Spl_syn.bexpr)
       let tcons = tcons_of_cons env cons in
       Boolexpr.make_condition tcons
   | AND(e1,e2) ->
-      Boolexpr.make_and 
+      Boolexpr.make_and
       (boolexpr_of_bexpr env e1)
       (boolexpr_of_bexpr env e2)
   | OR(e1,e2) ->
-      Boolexpr.make_or 
+      Boolexpr.make_or
       (boolexpr_of_bexpr env e1)
       (boolexpr_of_bexpr env e2)
   | NOT(e) ->
@@ -239,7 +239,7 @@ module Forward = struct
     let graph = Equation.create 3 info in
 
     let rec iter_block (procinfo:Equation.procinfo) (block:block) : unit
-      =  
+      =
       let env = procinfo.Equation.penv in
       ignore begin
 	List.fold_left
@@ -270,20 +270,20 @@ module Forward = struct
 		let pout = Array.of_list pout in
 		let calltransfer = Equation.Call(procinfo,callee,pin,pout) in
 		let rettransfer = Equation.Return(procinfo,callee, pin, pout) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|] calltransfer callee.Equation.pstart;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point; callee.Equation.pexit|] rettransfer instr.ipoint;
 	    | IF(bexpr,block) ->
 		let cond = boolexpr_of_bexpr env bexpr in
 		let condnot = Boolexpr.make_not negate_tcons cond in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|] condtransfer block.bpoint;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|exit_of_block block|] (Equation.Condition(Boolexpr.CST(true))) instr.ipoint;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|]  condnottransfer instr.ipoint;
 		iter_block procinfo block
 	    | IFELSE(bexpr,block1,block2) ->
@@ -291,13 +291,13 @@ module Forward = struct
 		let condnot = Boolexpr.make_not negate_tcons cond in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|]  condtransfer block1.bpoint;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|exit_of_block block1|] (Equation.Condition(Boolexpr.CST(true))) instr.ipoint;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|] condnottransfer block2.bpoint;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|exit_of_block block2|] (Equation.Condition(Boolexpr.CST(true))) instr.ipoint;
 		iter_block procinfo block1;
 		iter_block procinfo block2
@@ -306,28 +306,28 @@ module Forward = struct
 		let condnot = Boolexpr.make_not negate_tcons cond in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|] condtransfer block.bpoint;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|exit_of_block block|] (Equation.Condition(Boolexpr.CST(true))) point;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|] condnottransfer instr.ipoint;
 		iter_block procinfo block
-   	    end;
+	    end;
 	    instr.ipoint
 	  end)
 	  block.bpoint
 	  block.instrs
       end
     in
-    
+
     List.iter
       (begin fun procedure ->
 	let procinfo = Hashhe.find info.Equation.procinfo procedure.pname in
 	iter_block procinfo procedure.pcode;
       end)
       prog.procedures;
-   
+
     graph
 
 end
@@ -343,7 +343,7 @@ module Backward = struct
     let graph = Equation.create 3 info in
 
     let rec iter_block (procinfo:Equation.procinfo) (block:block) : unit
-      =  
+      =
       let env = procinfo.Equation.penv in
       ignore begin
 	List.fold_left
@@ -373,20 +373,20 @@ module Backward = struct
 		let pout = Array.of_list pout in
 		let calltransfer = Equation.Call(procinfo,callee,pin,pout) in
 		let rettransfer = Equation.Return(procinfo,callee,pin,pout) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|callee.Equation.pstart|] calltransfer point;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|instr.ipoint|] rettransfer callee.Equation.pexit;
 	    | IF(bexpr,block) ->
 		let cond = boolexpr_of_bexpr env bexpr in
 		let condnot = Boolexpr.make_not negate_tcons cond in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|block.bpoint|] condtransfer point;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|instr.ipoint|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block);
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|instr.ipoint|] condnottransfer point;
 		iter_block procinfo block
 	    | IFELSE(bexpr,block1,block2) ->
@@ -394,13 +394,13 @@ module Backward = struct
 		let condnot = Boolexpr.make_not negate_tcons cond in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|block1.bpoint|] condtransfer point;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|instr.ipoint|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block1);
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|block2.bpoint|] condnottransfer point;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|instr.ipoint|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block2);
 		iter_block procinfo block1;
 		iter_block procinfo block2
@@ -409,28 +409,28 @@ module Backward = struct
 		let condnot = Boolexpr.make_not negate_tcons cond in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|block.bpoint|] condtransfer point;
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|point|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block);
-		Equation.add_equation graph 
+		Equation.add_equation graph
 		  [|instr.ipoint|] condnottransfer point;
 		iter_block procinfo block
-   	    end;
+	    end;
 	    instr.ipoint
 	  end)
 	  block.bpoint
 	  block.instrs
       end
     in
-    
+
     List.iter
       (begin fun procedure ->
 	let procinfo = Hashhe.find info.Equation.procinfo procedure.pname in
 	iter_block procinfo procedure.pcode;
       end)
       prog.procedures;
-    
+
     graph
 
 end
