@@ -258,7 +258,7 @@ or choose one the provided examples:"
     ~default:"0"
     "debug"
   ;
-  print_string " debugging level (0 to 5)<br>";
+  print_string " debugging level (0 to 6)<br>";
 
   print_string "\
 <p>\n\

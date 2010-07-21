@@ -78,10 +78,10 @@ distclean: clean
 	done
 
 interprocweb.cgi: $(OBJx) interprocweb.cmx mainweb.cmx
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGS) \
+	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) -ccopt "-static" $(OCAMLOPTLDFLAGS) \
 	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx mainweb.cmx
 interprocwebf.cgi: $(OBJx) interprocweb.cmx mainwebf.cmx 
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) $(OCAMLOPTLDFLAGSf) \
+	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) -ccopt "-static" $(OCAMLOPTLDFLAGSf) \
 	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx mainwebf.cmx 
 
 mostlyclean: clean
@@ -130,8 +130,8 @@ homepage: html interproc.pdf manual.pdf
 
 online: interprocweb.cgi interprocwebf.cgi 
 	chmod a+rX $^
-	scp $^ johns:/home/wwwpop-art/pub/interproc
-	scp -r examples/*.txt johns:/home/wwwpop-art/pub/interproc/interproc_examples
+	cp $^ /home/wwwpop-art/pub/interproc
+	cp -r examples/*.txt /home/wwwpop-art/pub/interproc/interproc_examples
 
 #--------------------------------------------------------------
 # IMPLICIT RULES AND DEPENDENCIES

@@ -54,14 +54,15 @@ let parse_lexbuf
 (*  ********************************************************************** *)
 
 let build_graphs
+  (fmt:Format.formatter)
   (prog:Spl_syn.program)
   :
   Equation.graph * Equation.graph
   =
   (* Converting prog into a forward equation system *)
   let (fgraph:Equation.graph) = Syn2equation.Forward.make prog in
-  if !debug>0 then
-    printf "%sForward equation graph%s@   @[<v>%a@]@."
+  if !debug>5 then
+    fprintf fmt "%sForward equation graph%s@   @[<v>%a@]@."
       (!Option.displaytags).precolorB (!Option.displaytags).postcolor
       (PSHGraph.print
 	PSpl_syn.print_point
@@ -73,8 +74,8 @@ let build_graphs
   ;
   (* Converting prog into a backward equation system *)
   let (bgraph:Equation.graph) = Syn2equation.Backward.make prog in
-  if !debug>0 then
-    printf "%sBackward equation graph%s@   @[<v>%a@]@."
+  if !debug>5 then
+    fprintf fmt "%sBackward equation graph%s@   @[<v>%a@]@."
       (!Option.displaytags).precolorB (!Option.displaytags).postcolor
       (PSHGraph.print
 	PSpl_syn.print_point
@@ -150,7 +151,7 @@ let analyze_and_display
   :
   unit
   =
-  let (fgraph,bgraph) = build_graphs prog in
+  let (fgraph,bgraph) = build_graphs fmt prog in
   (* Computing solution *)
   begin match !domain with
   | Box ->

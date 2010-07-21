@@ -8,7 +8,7 @@
 
 val parse_lexbuf : Format.formatter -> Lexing.lexbuf -> Spl_syn.program
 
-val build_graphs : Spl_syn.program -> Equation.graph * Equation.graph
+val build_graphs : Format.formatter -> Spl_syn.program -> Equation.graph * Equation.graph
 val compute_and_display :
   Format.formatter ->
   Spl_syn.program ->
