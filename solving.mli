@@ -50,6 +50,7 @@ module Forward : sig
       *)
 
   val compute :
+    fmt:Format.formatter ->
     Equation.graph ->
     output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
     'a Apron.Manager.t ->
@@ -77,6 +78,7 @@ module Backward : sig
       (** Applying a transfer function *)
 
   val compute :
+    fmt:Format.formatter ->
     Spl_syn.program ->
     Equation.graph ->
     output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->

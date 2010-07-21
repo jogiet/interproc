@@ -16,7 +16,7 @@ open Option
 let parse_lexbuf
   (fmt:Format.formatter)
   (lexbuf:Lexing.lexbuf)
-  : 
+  :
   Spl_syn.program
   =
   let prog =
@@ -109,7 +109,7 @@ let compute_and_display
 	begin match t with
 	| Forward ->
 	    let fp =
-	      Solving.Forward.compute fgraph ~output:(!previous) manager ~debug:!debug
+	      Solving.Forward.compute ~fmt fgraph ~output:(!previous) manager ~debug:!debug
 	    in
 	    fprintf fmt "%sAnnotated program after forward analysis%s@ "
 	      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
@@ -117,7 +117,7 @@ let compute_and_display
 	    fp
 	| Backward ->
 	    let fp =
-	      Solving.Backward.compute prog bgraph ~output:(!previous) manager ~debug:!debug
+	      Solving.Backward.compute ~fmt prog bgraph ~output:(!previous) manager ~debug:!debug
 	    in
 	    fprintf fmt "%sAnnotated program after backward analysis%s@ "
 	      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
@@ -158,7 +158,7 @@ let analyze_and_display
       (Box.manager_alloc ())
   | Octagon ->
       compute_and_display fmt prog fgraph bgraph
-      (Oct.manager_alloc ()) 
+      (Oct.manager_alloc ())
   | PolkaLoose ->
       compute_and_display fmt prog fgraph bgraph
       (let man = Polka.manager_alloc_loose () in
@@ -168,27 +168,25 @@ let analyze_and_display
       Apron.Manager.set_funopt man Apron.Manager.Funid_widening wideningopt;
 *)
       man
-      ) 
+      )
   | PolkaStrict ->
       compute_and_display fmt prog fgraph bgraph
-      (Polka.manager_alloc_strict ()) 
+      (Polka.manager_alloc_strict ())
   | PolkaEq ->
       compute_and_display fmt prog fgraph bgraph
-      (Polka.manager_alloc_equalities ()) 
+      (Polka.manager_alloc_equalities ())
   | PplPolyLoose ->
       compute_and_display fmt prog fgraph bgraph
-      (Ppl.manager_alloc_loose ()) 
+      (Ppl.manager_alloc_loose ())
   | PplPolyStrict ->
       compute_and_display fmt prog fgraph bgraph
-      (Ppl.manager_alloc_strict ()) 
+      (Ppl.manager_alloc_strict ())
   | PplGrid ->
       compute_and_display fmt prog fgraph bgraph
-      (Ppl.manager_alloc_grid ()) 
+      (Ppl.manager_alloc_grid ())
   | PolkaGrid ->
       let man1 = Polka.manager_alloc_loose () in
       let man2 = Ppl.manager_alloc_grid () in
       compute_and_display fmt prog fgraph bgraph
-      (PolkaGrid.manager_alloc man1 man2) 
+      (PolkaGrid.manager_alloc man1 man2)
   end
-
-

@@ -36,19 +36,20 @@ let widening_descend = ref 2
   - a debug level
 *)
 let make_fpmanager
-  (graph: Equation.graph)
-  ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
-  (apply :
-    Equation.graph ->
-    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
-    'a Apron.Manager.t -> int -> 'a Apron.Abstract1.t array ->
+    ~(fmt : Format.formatter)
+    (graph: Equation.graph)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
+    (apply :
+      Equation.graph ->
+      output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
+      'a Apron.Manager.t -> int -> 'a Apron.Abstract1.t array ->
       unit * 'a Apron.Abstract1.t)
-  (abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
-  (man:'abstract Apron.Manager.t)
-  ~(debug:int)
-  :
-  (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.manager
-  =
+    (abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
+    (man:'abstract Apron.Manager.t)
+    ~(debug:int)
+    :
+    (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.manager
+    =
   let info = PSHGraph.info graph in
   {
     (* Lattice operation *)
@@ -93,7 +94,7 @@ let make_fpmanager
     Fixpoint.widening_freq = !widening_freq;
     Fixpoint.widening_descend = !widening_descend;
     (* Printing Options *)
-    Fixpoint.print_fmt = Format.std_formatter;
+    Fixpoint.print_fmt = fmt;
     Fixpoint.print_analysis=debug>=1;
     Fixpoint.print_component=debug>=2;
     Fixpoint.print_step=debug>=3;
@@ -360,6 +361,7 @@ module Forward = struct
   (*  ===================================================================== *)
 
   let compute
+    ~(fmt : Format.formatter)
     (graph:Equation.graph)
     ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
     (manager:'a Apron.Manager.t)
@@ -396,7 +398,7 @@ module Forward = struct
       end
       in
       let fpmanager =
-	make_fpmanager graph ~output
+	make_fpmanager ~fmt graph ~output
 	  apply abstract_init
 	  manager ~debug
       in
@@ -595,6 +597,7 @@ module Backward = struct
   (*  ===================================================================== *)
 
   let compute
+      ~(fmt : Format.formatter)
       (prog:Spl_syn.program)
       (graph:Equation.graph)
       ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
@@ -637,7 +640,7 @@ module Backward = struct
 	end
       end
       in
-      let fpmanager = make_fpmanager graph ~output apply abstract_init manager ~debug in
+      let fpmanager = make_fpmanager ~fmt graph ~output apply abstract_init manager ~debug in
       let fp =
 	if !iteration_guided then
 	  Fixpoint.analysis_guided
