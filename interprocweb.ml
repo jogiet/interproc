@@ -225,11 +225,6 @@ or choose one the provided examples:"
     "guided"
   ;
   print_string "guided iterations ";
-  Html.form_checkbox
-    ~checked:false
-    "widening_first"
-  ;
-  print_string "widening first<br>";
   Html.form_text
     ~size:2
     ~maxlength:2
@@ -237,13 +232,6 @@ or choose one the provided examples:"
     "widening_start"
   ;
   print_string " widening delay ";
-  Html.form_text
-    ~size:2
-    ~maxlength:2
-    ~default:"1"
-    "widening_frequency"
-  ;
-  print_string " widening frequency ";
   Html.form_text
     ~size:2
     ~maxlength:2
@@ -351,7 +339,7 @@ let mainpage ~(opt:option) =
 		Buffer.add_string buffer line;
 		Buffer.add_string buffer "\r\n";
 	      done
-	    with 
+	    with
 	    | End_of_file -> close_in file
 	  end;
 	  let text = Buffer.contents buffer in
