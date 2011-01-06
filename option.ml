@@ -19,10 +19,9 @@ let debug = ref 0
 
 let iteration_depth = ref 2
 let iteration_guided = ref false
-let widening_first = ref false
 let widening_start = ref 1
-let widening_freq = ref 1
 let widening_descend = ref 2
+let dot_fmt = ref None
 
 (*  ---------------------------------------------------------------------- *)
 (** {3 Display style} *)
@@ -35,14 +34,14 @@ type displaytags = {
   postcolor : string;
 }
 let (texttags:displaytags) = {
-  precolorB=""; 
-  precolorR=""; 
-  precolorG=""; 
+  precolorB="";
+  precolorR="";
+  precolorG="";
   postcolor="";
 }
 let (colortags:displaytags) = {
   precolorB ="\027[32m";
-  precolorR = "\027[31m"; 
+  precolorR = "\027[31m";
   precolorG="\027[34m";
   postcolor="\027[m";
 }
@@ -124,6 +123,14 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
 	"<int> : debug level, from 0 to 4 (default:0)"
       );
       (
+	"-dot",
+	Arg.String(begin fun filename ->
+	  let dotfile = open_out filename in
+	  let dotfmt = Format.formatter_of_out_channel dotfile in
+	  dot_fmt := Some dotfmt;
+	end),
+	"<filename> : activate DOT output to the given file (linked to -debug option)");
+      (
 	"-domain",
 	Arg.Symbol(
 	  lnamedomain,
@@ -149,18 +156,11 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
       (
 	"-widening",
 	Arg.Tuple([
-	  Arg.Bool(fun b -> widening_first := b);
 	  Arg.Int(begin fun n ->
 	    if n<0 then
 	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `widening start' argument"))
 	    else
 	      widening_start := n
-	  end);
-	  Arg.Int(begin fun n ->
-	    if n<1 then
-	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a stricly positive integer for its `widening frequency' argument"))
-	    else
-	      widening_freq := n
 	  end);
 	  Arg.Int(begin fun n ->
 	    if n<0 then
@@ -169,7 +169,7 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
 	      widening_descend := n
 	  end)
 	]),
-	"<bool><int><int><int> : specifies usage of widening first heuristics, delay and frequency of widening, and nb. of descending steps (default: false 1 1 2)"
+	"<int><int> : specifies widening delay and nb. of descending steps (default: 1 2)"
       )
       ;
       (

@@ -76,11 +76,9 @@ let make_fpmanager
     Fixpoint.print_abstract = Apron.Abstract1.print;
     Fixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
     (* Fixpoint Options *)
-    Fixpoint.accumulate = true;
+    Fixpoint.accumulate = false;
     (* Widening Options *)
-    Fixpoint.widening_first = !Option.widening_first;
     Fixpoint.widening_start = !Option.widening_start;
-    Fixpoint.widening_freq = !Option.widening_freq;
     Fixpoint.widening_descend = !Option.widening_descend;
     (* Printing Options *)
     Fixpoint.print_fmt = fmt;
@@ -91,11 +89,16 @@ let make_fpmanager
     Fixpoint.print_postpre=debug>=5;
     Fixpoint.print_workingsets=debug>=6;
     (* DOT Options *)
-    Fixpoint.dot_fmt = None;
+    Fixpoint.dot_fmt = !Option.dot_fmt;
     Fixpoint.dot_vertex=PSpl_syn.print_point;
     Fixpoint.dot_hedge=pp_print_int;
     Fixpoint.dot_attrvertex=PSpl_syn.print_point;
-    Fixpoint.dot_attrhedge=(fun fmt hedge -> ());
+    Fixpoint.dot_attrhedge= begin fun fmt hedge ->
+      let transfer = PSHGraph.attrhedge graph hedge in
+      fprintf fmt "%i: %a"
+	hedge
+	Equation.print_transfer transfer
+    end;
   }
 
 (** Make an output graph filled with bottom abstract avlues *)
@@ -183,7 +186,7 @@ module Forward = struct
       =
     let labstract =
       match expr with
-      | Boolexpr.TRUE -> 
+      | Boolexpr.TRUE ->
 	  [abstract]
       | Boolexpr.DISJ lconj ->
 	  List.map
@@ -199,11 +202,19 @@ module Forward = struct
 	    (fun abstract -> Apron.Abstract1.meet manager abstract dest)
 	    labstract
     in
-    match labstract with
-    | [] -> 	 
+    let res = match labstract with
+    | [] ->
 	Apron.Abstract1.bottom manager (Apron.Abstract1.env abstract)
     | [x] -> x
     | _	  -> Apron.Abstract1.join_array manager (Array.of_list labstract)
+    in
+    if false then
+      printf "apply_condition %a %a => %a@."
+	Apron.Abstract1.print abstract
+	(Boolexpr.print (Apron.Tcons1.array_print ~first:"@[" ~sep:" &&@ " ~last:"@]")) expr
+	Apron.Abstract1.print res
+    ;
+    res
 
   let apply_call
     (manager:'a Apron.Manager.t)
@@ -353,7 +364,7 @@ module Forward = struct
       | Some output ->
 	  let abstract = PSHGraph.attrvertex output start in
 	  if Apron.Abstract1.is_bottom manager abstract then
-	    PSette.empty Equation.compare_point 
+	    PSette.empty Equation.compare_point
 	  else
 	    (PSette.singleton Equation.compare_point start)
       end
@@ -379,7 +390,7 @@ module Forward = struct
       let fp =
 	if !Option.iteration_guided then
 	  Fixpoint.analysis_guided
-	    fpmanager graph sstart	
+	    fpmanager graph sstart
 	    (fun filter  ->
 	      Fixpoint.make_strategy_default
 		~vertex_dummy:Equation.vertex_dummy
@@ -443,9 +454,9 @@ module Backward = struct
     let env = Apron.Abstract1.env abstract in
     (* 1. We begin by removing all non-argument variables from the current
      abstract value *)
-    let tenv = 
+    let tenv =
       environment_of_tvar
-	(Apron.Environment.typ_of_var env) 
+	(Apron.Environment.typ_of_var env)
 	calleeinfo.Equation.pinput
     in
     let abstract2 =
@@ -618,7 +629,7 @@ module Backward = struct
       let fp =
 	if !Option.iteration_guided then
 	  Fixpoint.analysis_guided
-	    fpmanager graph !sstart	
+	    fpmanager graph !sstart
 	    (fun filter  ->
 	      Fixpoint.make_strategy_default
 		~vertex_dummy:Equation.vertex_dummy
@@ -637,19 +648,20 @@ module Backward = struct
     end
 end
 
+
 let print_apron_scalar fmt scalar =
   let res = Apron.Scalar.is_infty scalar in
   if res<>0 then
-    pp_print_string fmt 
+    pp_print_string fmt
       (if res<0 then "-oo" else "+oo")
   else begin
     match scalar with
     | Apron.Scalar.Float _ | Apron.Scalar.Mpfrf _ ->
 	Apron.Scalar.print fmt scalar
-    | Apron.Scalar.Mpqf mpqf ->  
+    | Apron.Scalar.Mpqf mpqf ->
 	Apron.Scalar.print fmt (Apron.Scalar.Float (Mpqf.to_float mpqf))
   end
-  
+
 let print_apron_interval fmt itv =
   Format.fprintf fmt "[@[<hv>%a;@,%a@]]"
     print_apron_scalar itv.Apron.Interval.inf
@@ -695,4 +707,4 @@ let print_output prog fmt fp =
 	  (!Option.displaytags).Option.postcolor
       end)
     prog
-    
+

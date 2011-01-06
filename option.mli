@@ -22,18 +22,14 @@ val iteration_depth : int ref
 val iteration_guided : bool ref
   (** Guided iteration technique *)
 
-val widening_first : bool ref
-  (** If true, a newly activated incoming edge disables (for this step)
-    widening. *)
-
 val widening_start : int ref
   (** Number of steps without widening *)
 
-val widening_freq : int ref
-  (** Widening every x steps *)
-
 val widening_descend : int ref
   (** Number of descending iterations *)
+
+val dot_fmt : Format.formatter option ref
+  (** Optional dot output *)
 
 (*  ---------------------------------------------------------------------- *)
 (** {3 Display style} *)

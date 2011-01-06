@@ -101,9 +101,7 @@ let make_fpmanager
     (* Fixpoint Options *)
     Fixpoint.accumulate = true;
     (* Widening Options *)
-    Fixpoint.widening_first = !Option.widening_first;
     Fixpoint.widening_start = !Option.widening_start;
-    Fixpoint.widening_freq = !Option.widening_freq;
     Fixpoint.widening_descend = !Option.widening_descend;
     (* Printing Options *)
     Fixpoint.print_fmt = fmt;
@@ -301,7 +299,7 @@ module Forward = struct
 		graph sstart)
 	in
 	result := Some fp;
-        (* Display *)
+	(* Display *)
 	printf "policy=%a" (hash_policy_print pmanager) policy;
 	Solving.print_output prog fmt fp;
 	(* Now try to modify the policy *)
