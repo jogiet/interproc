@@ -12,6 +12,18 @@ let inputfilename = ref ""
 (** debug level *)
 let debug = ref 0
 
+
+(*  ---------------------------------------------------------------------- *)
+(** {3 Solving options} *)
+(*  ---------------------------------------------------------------------- *)
+
+let iteration_depth = ref 2
+let iteration_guided = ref false
+let widening_first = ref false
+let widening_start = ref 1
+let widening_freq = ref 1
+let widening_descend = ref 2
+
 (*  ---------------------------------------------------------------------- *)
 (** {3 Display style} *)
 (*  ---------------------------------------------------------------------- *)
@@ -54,19 +66,23 @@ let (lnamedisplaytags : string list) =
 
 let displaytags = ref colortags
 
+let print_box = ref false
+
 (*  ---------------------------------------------------------------------- *)
 (** {3 Choice of abstract domain} *)
 (*  ---------------------------------------------------------------------- *)
 type domain =
-| Box
-| Octagon
-| PolkaLoose
-| PolkaStrict
-| PolkaEq
-| PplPolyLoose
-| PplPolyStrict
-| PplGrid
-| PolkaGrid
+  | Box
+  | Octagon
+  | PolkaLoose
+  | PolkaStrict
+  | PolkaEq
+  | Taylor1plus
+  | PplPolyLoose
+  | PplPolyStrict
+  | PplGrid
+  | PolkaGrid
+  | BoxPolicy
 let (assocnamedomain : (string * domain) list) =
   [
     ("box",Box);
@@ -74,10 +90,12 @@ let (assocnamedomain : (string * domain) list) =
     ("polka",PolkaLoose);
     ("polkastrict",PolkaStrict);
     ("polkaeq",PolkaEq);
+    ("taylor1plus",Taylor1plus);
     ("ppl",PplPolyLoose);
     ("pplstrict",PplPolyStrict);
     ("pplgrid",PplGrid);
-    ("polkagrid",PolkaGrid)
+    ("polkagrid",PolkaGrid);
+    ("boxpolicy",BoxPolicy);
   ]
 let (lnamedomain : string list) =
   List.map
@@ -119,36 +137,36 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
 	  if n<2 then
 	    raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-depth' expects an integer >= 2"))
 	  else
-	    Solving.iteration_depth := n
+	    iteration_depth := n
 	end),
 	"<int> : depth of recursive iterations (default 2, may only be more)"
       );
       (
 	"-guided",
-	Arg.Bool(begin fun b -> Solving.iteration_guided := b end),
+	Arg.Bool(begin fun b -> iteration_guided := b end),
 	"<bool> : if true, guided analysis of Gopand and Reps (default: false)"
       );
       (
 	"-widening",
 	Arg.Tuple([
-	  Arg.Bool(fun b -> Solving.widening_first := b);
+	  Arg.Bool(fun b -> widening_first := b);
 	  Arg.Int(begin fun n ->
 	    if n<0 then
 	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `widening start' argument"))
 	    else
-	      Solving.widening_start := n
+	      widening_start := n
 	  end);
 	  Arg.Int(begin fun n ->
 	    if n<1 then
 	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a stricly positive integer for its `widening frequency' argument"))
 	    else
-	      Solving.widening_freq := n
+	      widening_freq := n
 	  end);
 	  Arg.Int(begin fun n ->
 	    if n<0 then
 	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `descending' argument"))
 	    else
-	      Solving.widening_descend := n
+	      widening_descend := n
 	  end)
 	]),
 	"<bool><int><int><int> : specifies usage of widening first heuristics, delay and frequency of widening, and nb. of descending steps (default: false 1 1 2)"
@@ -166,6 +184,11 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
 	"-margin",
 	Arg.Int(fun n -> Format.set_margin n),
 	" : nb of columns for text display"
+      );
+      (
+	"-print_box",
+	Arg.Bool(fun b -> print_box := b),
+	" : if true, also print bounding boxes (default: false)"
       );
       (
 	"-analysis",

@@ -203,30 +203,74 @@ let tcons_of_cons env (cons:Spl_syn.cons) : Apron.Tcons1.t
   in
   Apron.Tcons1.make (Apron.Texpr1.of_expr env expr) typ
 
-let rec boolexpr_of_bexpr env (bexpr:Spl_syn.bexpr)
-  :
-  Apron.Tcons1.t Boolexpr.t
-  =
+let rec push_not (bexpr:Spl_syn.bexpr) : Spl_syn.bexpr
+    =
   match bexpr with
-  | TRUE ->
-      Boolexpr.make_cst true
-  | FALSE ->
-      Boolexpr.make_cst false
-  | BRANDOM ->
-      Boolexpr.RANDOM
-  | CONS(cons) ->
-      let tcons = tcons_of_cons env cons in
-      Boolexpr.make_condition tcons
-  | AND(e1,e2) ->
-      Boolexpr.make_and
-      (boolexpr_of_bexpr env e1)
-      (boolexpr_of_bexpr env e2)
-  | OR(e1,e2) ->
-      Boolexpr.make_or
-      (boolexpr_of_bexpr env e1)
-      (boolexpr_of_bexpr env e2)
+  | TRUE | FALSE | BRANDOM | CONS _ -> 
+      bexpr
   | NOT(e) ->
-      Boolexpr.make_not negate_tcons (boolexpr_of_bexpr env e)
+      begin match e with
+      | TRUE -> FALSE
+      | FALSE -> TRUE
+      | BRANDOM -> BRANDOM
+      | CONS(cons) -> e 
+      | AND(e1,e2) -> OR(push_not (NOT e1), push_not (NOT e2))
+      | OR(e1,e2) -> AND(push_not (NOT e1), push_not (NOT e2))
+      | NOT(e) -> push_not e
+      end
+  | AND(e1,e2) -> AND(push_not e1, push_not e2)
+  | OR(e1,e2) -> OR(push_not e1, push_not e2)
+
+let boolexpr0_of_bexpr env (bexpr:Spl_syn.bexpr)
+    :
+    Apron.Tcons1.t array Boolexpr.t
+    =
+  let cand t1 t2 = Boolexpr.make_conjunction (Array.append t1 t2) in
+  let rec translate bexpr = 
+    match bexpr with
+    | TRUE | BRANDOM -> Boolexpr.make_cst true
+    | FALSE -> Boolexpr.make_cst false
+    | CONS(cons) ->
+	let tcons = tcons_of_cons env cons in
+	Boolexpr.make_conjunction [|tcons|]
+    | AND(e1,e2) ->
+	Boolexpr.make_and ~cand
+	  (translate e1) (translate e2)
+    | OR(e1,e2) ->
+	Boolexpr.make_or (translate e1) (translate e2)
+    | NOT(e) ->
+	begin match e with
+	| FALSE | BRANDOM -> Boolexpr.make_cst true
+	| TRUE -> Boolexpr.make_cst false
+	| CONS(cons) ->
+	    let tcons = tcons_of_cons env cons in
+	    let tcons = negate_tcons tcons in
+	    Boolexpr.make_conjunction [|tcons|]
+	| AND(e1,e2) ->
+	    Boolexpr.make_or (translate (NOT e1)) (translate (NOT e2))
+	| OR(e1,e2) ->
+	    Boolexpr.make_and ~cand 
+	      (translate (NOT e1)) (translate (NOT e2))
+	| NOT(e) -> translate e
+	end
+  in
+  translate bexpr
+
+let boolexpr_of_bexpr env (bexpr:Spl_syn.bexpr)
+    :
+    Apron.Tcons1.earray Boolexpr.t
+    =
+  let bexpr0 = boolexpr0_of_bexpr env bexpr in
+  Boolexpr.map
+    (begin fun tcons ->
+      assert(tcons<>[||]);
+      let res = Apron.Tcons1.array_make env (Array.length tcons) in
+      Array.iteri
+	(fun i cons -> Apron.Tcons1.array_set res i cons)
+	tcons;
+      res
+    end)
+    bexpr0
 
 (*  ********************************************************************** *)
 (** {2 Forward equations} *)
@@ -246,12 +290,12 @@ module Forward = struct
 	  (begin fun point instr ->
 	    begin match instr.instruction with
 	    | SKIP ->
-		let transfer = Equation.Condition(Boolexpr.CST(true)) in
+		let transfer = Equation.Condition(Boolexpr.TRUE) in
 		Equation.add_equation graph [|point|] transfer instr.ipoint;
 	    | HALT
 	    | FAIL ->
 		(* We still put a dummy equation *)
-		let transfer = Equation.Condition(Boolexpr.CST(false)) in
+		let transfer = Equation.Condition(Boolexpr.DISJ([])) in
 		Equation.add_equation graph [|point|] transfer instr.ipoint;
 		()
 	    | ASSUME(bexpr) ->
@@ -276,40 +320,40 @@ module Forward = struct
 		  [|point; callee.Equation.pexit|] rettransfer instr.ipoint;
 	    | IF(bexpr,block) ->
 		let cond = boolexpr_of_bexpr env bexpr in
-		let condnot = Boolexpr.make_not negate_tcons cond in
+		let condnot = boolexpr_of_bexpr env (NOT bexpr) in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
 		Equation.add_equation graph
 		  [|point|] condtransfer block.bpoint;
 		Equation.add_equation graph
-		  [|exit_of_block block|] (Equation.Condition(Boolexpr.CST(true))) instr.ipoint;
+		  [|exit_of_block block|] (Equation.Condition(Boolexpr.make_cst true)) instr.ipoint;
 		Equation.add_equation graph
 		  [|point|]  condnottransfer instr.ipoint;
 		iter_block procinfo block
 	    | IFELSE(bexpr,block1,block2) ->
 		let cond = boolexpr_of_bexpr env bexpr in
-		let condnot = Boolexpr.make_not negate_tcons cond in
+		let condnot = boolexpr_of_bexpr env (NOT bexpr) in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
 		Equation.add_equation graph
 		  [|point|]  condtransfer block1.bpoint;
 		Equation.add_equation graph
-		  [|exit_of_block block1|] (Equation.Condition(Boolexpr.CST(true))) instr.ipoint;
+		  [|exit_of_block block1|] (Equation.Condition(Boolexpr.make_cst true)) instr.ipoint;
 		Equation.add_equation graph
 		  [|point|] condnottransfer block2.bpoint;
 		Equation.add_equation graph
-		  [|exit_of_block block2|] (Equation.Condition(Boolexpr.CST(true))) instr.ipoint;
+		  [|exit_of_block block2|] (Equation.Condition(Boolexpr.make_cst true)) instr.ipoint;
 		iter_block procinfo block1;
 		iter_block procinfo block2
 	    | LOOP(bexpr,block) ->
 		let cond = boolexpr_of_bexpr env bexpr in
-		let condnot = Boolexpr.make_not negate_tcons cond in
+		let condnot = boolexpr_of_bexpr env (NOT bexpr) in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
 		Equation.add_equation graph
 		  [|point|] condtransfer block.bpoint;
 		Equation.add_equation graph
-		  [|exit_of_block block|] (Equation.Condition(Boolexpr.CST(true))) point;
+		  [|exit_of_block block|] (Equation.Condition(Boolexpr.make_cst true)) point;
 		Equation.add_equation graph
 		  [|point|] condnottransfer instr.ipoint;
 		iter_block procinfo block
@@ -350,12 +394,12 @@ module Backward = struct
 	  (begin fun point instr ->
 	    begin match instr.instruction with
 	    | SKIP ->
-		let transfer = Equation.Condition(Boolexpr.CST(true)) in
+		let transfer = Equation.Condition(Boolexpr.make_cst true) in
 		Equation.add_equation graph [|instr.ipoint|] transfer point;
 	    | HALT
 	    | FAIL ->
 		(* We still put a dummy equation *)
-		let transfer = Equation.Condition(Boolexpr.CST(false)) in
+		let transfer = Equation.Condition(Boolexpr.make_cst false) in
 		Equation.add_equation graph [|instr.ipoint|] transfer point;
 	    | ASSUME(bexpr) ->
 		let cond = boolexpr_of_bexpr env bexpr in
@@ -379,40 +423,40 @@ module Backward = struct
 		  [|instr.ipoint|] rettransfer callee.Equation.pexit;
 	    | IF(bexpr,block) ->
 		let cond = boolexpr_of_bexpr env bexpr in
-		let condnot = Boolexpr.make_not negate_tcons cond in
+		let condnot = boolexpr_of_bexpr env (NOT bexpr) in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
 		Equation.add_equation graph
 		  [|block.bpoint|] condtransfer point;
 		Equation.add_equation graph
-		  [|instr.ipoint|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block);
+		  [|instr.ipoint|] (Equation.Condition(Boolexpr.make_cst true)) (exit_of_block block);
 		Equation.add_equation graph
 		  [|instr.ipoint|] condnottransfer point;
 		iter_block procinfo block
 	    | IFELSE(bexpr,block1,block2) ->
 		let cond = boolexpr_of_bexpr env bexpr in
-		let condnot = Boolexpr.make_not negate_tcons cond in
+		let condnot = boolexpr_of_bexpr env (NOT bexpr) in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
 		Equation.add_equation graph
 		  [|block1.bpoint|] condtransfer point;
 		Equation.add_equation graph
-		  [|instr.ipoint|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block1);
+		  [|instr.ipoint|] (Equation.Condition(Boolexpr.make_cst true)) (exit_of_block block1);
 		Equation.add_equation graph
 		  [|block2.bpoint|] condnottransfer point;
 		Equation.add_equation graph
-		  [|instr.ipoint|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block2);
+		  [|instr.ipoint|] (Equation.Condition(Boolexpr.make_cst true)) (exit_of_block block2);
 		iter_block procinfo block1;
 		iter_block procinfo block2
 	    | LOOP(bexpr,block) ->
 		let cond = boolexpr_of_bexpr env bexpr in
-		let condnot = Boolexpr.make_not negate_tcons cond in
+		let condnot = boolexpr_of_bexpr env (NOT bexpr) in
 		let condtransfer = Equation.Condition(cond) in
 		let condnottransfer = Equation.Condition(condnot) in
 		Equation.add_equation graph
 		  [|block.bpoint|] condtransfer point;
 		Equation.add_equation graph
-		  [|point|] (Equation.Condition(Boolexpr.CST(true))) (exit_of_block block);
+		  [|point|] (Equation.Condition(Boolexpr.make_cst true)) (exit_of_block block);
 		Equation.add_equation graph
 		  [|instr.ipoint|] condnottransfer point;
 		iter_block procinfo block

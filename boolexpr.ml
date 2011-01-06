@@ -8,81 +8,65 @@
 
 open Format;;
 
-(** Type of a Boolean expression, parametrized by the type of atomic conditions
+(** Type of a Boolean expression under DNF, parametrized by the
+    type of conjunctions. False is represented by [DISJ([])].
 *)
-type 'cond t =
-  | CONDITION of 'cond
-      (** Atomic condition *)
-  | RANDOM
-      (** Unknown condition (should appear only at the top level *)
-  | CST of bool
-      (** Constant atom (true or false) *)
-  | OR of 'cond t * 'cond t
-      (** Disjunction *)
-  | AND of 'cond t * 'cond t
-      (** Conjunction *)
+type 'conj t =
+  | TRUE
+  | DISJ of 'conj list
 
-(** Printing function, parametrized by a printing function for atomic
-    conditions *)
-let rec print (printa:Format.formatter -> 'a -> unit) (fmt:Format.formatter) (co:'a t) : unit =
-  match co with
-  | CONDITION co -> printa fmt co
-  | CST b -> if b then pp_print_string fmt "true" else pp_print_string fmt "false"
-  | RANDOM -> pp_print_string fmt "?"
-  | OR (c1,c2) ->
-      fprintf fmt "(%a || %a)"
-      (print printa) c1 (print printa) c2
-  | AND (c1,c2) ->
-      fprintf fmt "(%a && %a)"
-      (print printa) c1 (print printa) c2
+(** Printing function, parametrized by a printing function for conjunctions *)
+let print print_elt fmt = function
+  | TRUE -> pp_print_string fmt "true"
+  | DISJ([]) -> pp_print_string fmt "false"
+  | DISJ(l) ->
+      Print.list ~first:"@[" ~sep:" ||@ " ~last:"@]"
+	print_elt fmt l
 
 (** Map-iterator, based on an atomic condition transformer *)
 let rec map (f:'a -> 'b) (expr:'a t) : 'b t =
   match expr with
-  | RANDOM -> RANDOM
-  | CST x -> CST x
-  | CONDITION c -> CONDITION(f c)
-  | OR(a,b) -> OR(map f a, map f b)
-  | AND(a,b) -> AND(map f a, map f b)
-
+  | TRUE -> TRUE
+  | DISJ(l) -> DISJ(List.map f l)
+let rec fold2 f res e1 e2 =
+  match (e1,e2) with
+  | TRUE,TRUE -> res
+  | (DISJ l1),(DISJ l2) -> List.fold_left2 f res l1 l2
+  | _ -> raise (Invalid_argument "")
 
 (*  ********************************************************************* *)
 (** {2 Constructors for Boolean expressions} *)
 (*  ********************************************************************* *)
 
-(** Some of these constructors may simplify the resulting expressions. *)
+let make_cst b =
+  if true then TRUE else DISJ []
 
-let make_condition (co:'a) =
-  CONDITION co
+let make_conjunction conj = DISJ([conj])
 
-let make_cst (bo:bool) =
-  CST bo
+let make_or e1 e2 = match (e1,e2) with
+  | (TRUE,x) | (x,TRUE) -> TRUE
+  | (DISJ(l1), DISJ(l2)) -> DISJ(l1@l2)
 
-let make_or (c1:'a t) (c2:'a t) =
-  begin match c1 with
-  | CST(b) -> if b then c1 else c2
-  | _ ->
-      begin match c2 with
-      | CST(b) -> if b then c2 else c1
-      | _ -> OR (c1,c2)
-      end
-  end
+let make_and ~cand e1 e2 = match (e1,e2) with
+  | (TRUE,x) | (x,TRUE) -> x
+  | (DISJ(l1), DISJ(l2)) ->
+      List.fold_left
+	(begin fun res conj1 ->
+	  List.fold_left
+	    (begin fun res conj2 ->
+	      let conj = cand conj1 conj2 in
+	      make_or res conj
+	    end)
+	    res l2
+	end)
+	(DISJ []) l1
 
-let make_and (c1:'a t) (c2:'a t) =
-  begin match c1 with
-  | CST(b) -> if b then c2 else c1
-  | _ ->
-      begin match c2 with
-      | CST(b) -> if b then c1 else c2
-      | _ -> AND (c1,c2)
-      end
-  end
-
-(** Negation, parametrized by a negation function for atomic conditions *)
-let rec make_not (negate:'a -> 'a) (expr:'a t) : 'a t =
+let rec make_not ~cand ~cnegate (expr:'a t) : 'a t =
   match expr with
-  | CONDITION co -> CONDITION(negate co)
-  | CST b -> CST (not b)
-  | RANDOM -> RANDOM
-  | OR(c1,c2) -> make_and (make_not negate c1) (make_not negate c2)
-  | AND(c1,c2) -> make_or (make_not negate c1) (make_not negate c2)
+  | TRUE -> DISJ([])
+  | DISJ(l) ->
+      List.fold_left
+	(begin fun res conjunction ->
+	  make_and cand res (cnegate conjunction)
+	end)
+	TRUE l

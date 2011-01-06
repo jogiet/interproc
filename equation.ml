@@ -89,7 +89,7 @@ type transfer =
       (** Assignement by a linear expression *)
   | Tassign of Apron.Var.t * Apron.Texpr1.t
       (** Assignement by a tree expression *)
-  | Condition of Apron.Tcons1.t Boolexpr.t
+  | Condition of Apron.Tcons1.earray Boolexpr.t
       (** Filtering of a predicate by a Boolean expression *)
   | Call of procinfo * procinfo * (Apron.Var.t array) * (Apron.Var.t array)
       (** Procedure call, of the form
@@ -124,7 +124,7 @@ let add_equation (graph:graph) (torg:var array) (transfer:transfer) (dest:var)
     torg
   ;
   if not (PSHGraph.is_vertex graph dest) then PSHGraph.add_vertex graph dest ();
-  if transfer<>(Condition(Boolexpr.CST(false))) then begin
+  if transfer<>(Condition(Boolexpr.DISJ([]))) then begin
     let info = PSHGraph.info graph in
     PSHGraph.add_hedge graph info.counter transfer ~pred:torg ~succ:[|dest|];
     info.counter <- info.counter + 1;
@@ -166,7 +166,7 @@ let print_transfer fmt transfer = match transfer with
       Apron.Texpr1.print e
   | Condition(bexpr) ->
       fprintf fmt "IF %a"
-      (Boolexpr.print Apron.Tcons1.print) bexpr
+      (Boolexpr.print (Apron.Tcons1.array_print ~first:"@[" ~sep:" &&@ " ~last:"@]")) bexpr
   | Call(callerinfo,calleeinfo,pin,pout) ->
       fprintf fmt "CALL %a = %s(%a)"
       print_tvar pout

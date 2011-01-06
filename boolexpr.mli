@@ -6,27 +6,20 @@
    Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
 *)
 
-(** Type of a Boolean expression, parametrized by the type of atomic conditions
+(** Type of a Boolean expression under DNF, parametrized by the
+    type of conjunctions. False is represented by [DISJ([])].
 *)
-type 'cond t =
-  | CONDITION of 'cond
-      (** Atomic condition *)
-  | RANDOM
-      (** Unknown condition (should appear only at the top level *) 
-  | CST of bool
-      (** Constant atom (true or false) *)
-  | OR of 'cond t * 'cond t
-      (** Disjunction *)
-  | AND of 'cond t * 'cond t
-      (** Conjunction *)
+type 'conj t =
+  | TRUE
+  | DISJ of 'conj list
 
 val print :
-  (Format.formatter -> 'cond -> unit) -> Format.formatter -> 'cond t -> unit
-  (** Printing function, parametrized by a printing function for atomic
-    conditions *)
+  (Format.formatter -> 'conj -> unit) -> Format.formatter -> 'conj t -> unit
+  (** Printing function, parametrized by a printing function for conjunctions *)
 
 val map : ('conda -> 'condb) -> 'conda t -> 'condb t
-  (** Map-iterator, based on an atomic condition transformer *)
+val fold2 : ('acc -> 'conda -> 'condb -> 'acc) -> 'acc -> 'conda t -> 'condb t -> 'acc
+  (** Map-iterator, based on a conjunction transformer *)
 
 (*  ********************************************************************* *)
 (** {2 Constructors for Boolean expressions} *)
@@ -34,9 +27,17 @@ val map : ('conda -> 'condb) -> 'conda t -> 'condb t
 
 (** Some of these constructors may simplify the resulting expressions. *)
 
-val make_condition : 'cond -> 'cond t
-val make_cst : bool -> 'cond t
-val make_or : 'cond t -> 'cond t -> 'cond t
-val make_and : 'cond t -> 'cond t -> 'cond t
-val make_not : ('cond -> 'cond) -> 'cond t -> 'cond t
-  (** Negation, parametrized by a negation function for atomic conditions *)
+val make_cst : bool -> 'conj t
+val make_conjunction : 'conj -> 'conj t
+val make_or : 'conj t -> 'conj t -> 'conj t
+val make_and : 
+  cand:('conj -> 'conj -> 'conj t) -> 
+  'conj t -> 'conj t -> 'conj t
+  (** Conjunction, parametrized by conjunction function
+      on conjunctions *)
+val make_not :
+  cand:('conj -> 'conj -> 'conj t) -> 
+  cnegate:('conj -> 'conj t) -> 
+  'conj t -> 'conj t
+  (** Negation, parametrized by conjunction and negation functions
+      on conjunctions *)

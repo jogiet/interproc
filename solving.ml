@@ -13,17 +13,6 @@ open Format
 (*  ********************************************************************* *)
 
 (*  ===================================================================== *)
-(** {3 Options} *)
-(*  ===================================================================== *)
-
-let iteration_depth = ref 2
-let iteration_guided = ref false
-let widening_first = ref false
-let widening_start = ref 1
-let widening_freq = ref 1
-let widening_descend = ref 2
-
-(*  ===================================================================== *)
 (** {3 Functions} *)
 (*  ===================================================================== *)
 
@@ -89,10 +78,10 @@ let make_fpmanager
     (* Fixpoint Options *)
     Fixpoint.accumulate = true;
     (* Widening Options *)
-    Fixpoint.widening_first = !widening_first;
-    Fixpoint.widening_start = !widening_start;
-    Fixpoint.widening_freq = !widening_freq;
-    Fixpoint.widening_descend = !widening_descend;
+    Fixpoint.widening_first = !Option.widening_first;
+    Fixpoint.widening_start = !Option.widening_start;
+    Fixpoint.widening_freq = !Option.widening_freq;
+    Fixpoint.widening_descend = !Option.widening_descend;
     (* Printing Options *)
     Fixpoint.print_fmt = fmt;
     Fixpoint.print_analysis=debug>=1;
@@ -185,51 +174,36 @@ module Forward = struct
     res
 
   let apply_condition
-    (manager:'a Apron.Manager.t)
-    (abstract:'a Apron.Abstract1.t)
-    (expr:Apron.Tcons1.t Boolexpr.t)
-    (dest:'a Apron.Abstract1.t option)
-    :
-    'a Apron.Abstract1.t
-    =
-    let rec apply_condition
+      (manager:'a Apron.Manager.t)
       (abstract:'a Apron.Abstract1.t)
-      (expr:Apron.Tcons1.t Boolexpr.t)
+      (expr:Apron.Tcons1.earray Boolexpr.t)
+      (dest:'a Apron.Abstract1.t option)
       :
       'a Apron.Abstract1.t
       =
-      let res =
-	match expr with
-	| Boolexpr.CST x ->
-	    if x then
-	      abstract
-	    else
-	      Apron.Abstract1.bottom manager (Apron.Abstract1.env abstract)
-	| Boolexpr.RANDOM ->
-	    abstract
-	| Boolexpr.CONDITION tcons ->
-	    let env = Apron.Tcons1.get_env tcons in
-	    let array = Apron.Tcons1.array_make env 1 in
-	    Apron.Tcons1.array_set array 0 tcons;
-	    Apron.Abstract1.meet_tcons_array manager abstract array
-	| Boolexpr.OR(e1,e2) ->
-	    Apron.Abstract1.join manager
-	    (apply_condition abstract e1)
-	    (apply_condition abstract e2)
-	| Boolexpr.AND(e1,e2) ->
-	    Apron.Abstract1.meet manager
-	    (apply_condition abstract e1)
-	    (apply_condition abstract e2)
-      in
-      res
+    let labstract =
+      match expr with
+      | Boolexpr.TRUE -> 
+	  [abstract]
+      | Boolexpr.DISJ lconj ->
+	  List.map
+	    (fun conj ->
+	      Apron.Abstract1.meet_tcons_array manager abstract conj)
+	    lconj
     in
-    let abstract =
+    let labstract =
       match dest with
-      | None -> abstract
+      | None -> labstract
       | Some dest ->
-	  Apron.Abstract1.meet manager abstract dest
+	  List.map
+	    (fun abstract -> Apron.Abstract1.meet manager abstract dest)
+	    labstract
     in
-    apply_condition abstract expr
+    match labstract with
+    | [] -> 	 
+	Apron.Abstract1.bottom manager (Apron.Abstract1.env abstract)
+    | [x] -> x
+    | _	  -> Apron.Abstract1.join_array manager (Array.of_list labstract)
 
   let apply_call
     (manager:'a Apron.Manager.t)
@@ -403,7 +377,7 @@ module Forward = struct
 	  manager ~debug
       in
       let fp =
-	if !iteration_guided then
+	if !Option.iteration_guided then
 	  Fixpoint.analysis_guided
 	    fpmanager graph sstart	
 	    (fun filter  ->
@@ -642,7 +616,7 @@ module Backward = struct
       in
       let fpmanager = make_fpmanager ~fmt graph ~output apply abstract_init manager ~debug in
       let fp =
-	if !iteration_guided then
+	if !Option.iteration_guided then
 	  Fixpoint.analysis_guided
 	    fpmanager graph !sstart	
 	    (fun filter  ->
@@ -662,3 +636,63 @@ module Backward = struct
       fp
     end
 end
+
+let print_apron_scalar fmt scalar =
+  let res = Apron.Scalar.is_infty scalar in
+  if res<>0 then
+    pp_print_string fmt 
+      (if res<0 then "-oo" else "+oo")
+  else begin
+    match scalar with
+    | Apron.Scalar.Float _ | Apron.Scalar.Mpfrf _ ->
+	Apron.Scalar.print fmt scalar
+    | Apron.Scalar.Mpqf mpqf ->  
+	Apron.Scalar.print fmt (Apron.Scalar.Float (Mpqf.to_float mpqf))
+  end
+  
+let print_apron_interval fmt itv =
+  Format.fprintf fmt "[@[<hv>%a;@,%a@]]"
+    print_apron_scalar itv.Apron.Interval.inf
+    print_apron_scalar itv.Apron.Interval.sup
+
+let print_apron_box fmt box =
+  let tinterval = box.Apron.Abstract1.interval_array in
+  let env = box.Apron.Abstract1.box1_env in
+  let first = ref true in
+  fprintf fmt "[|@[";
+  Array.iteri
+    (begin fun i interval ->
+      if not (Apron.Interval.is_top interval) then begin
+	if not !first then fprintf fmt ";@ ";
+	let var = Apron.Environment.var_of_dim env i in
+	let name = Apron.Var.to_string var in
+	fprintf fmt "%s in %a" name
+	  print_apron_interval interval;
+	first := false
+      end;
+    end)
+    tinterval
+  ;
+  fprintf fmt "@]|]"
+
+let print_abstract1 fmt abs =
+  if !Option.print_box then
+      let man = Apron.Abstract1.manager abs in
+      let box = Apron.Abstract1.to_box man abs in
+      print_apron_box fmt box;
+  else
+    Apron.Abstract1.print fmt abs
+
+let print_output prog fmt fp =
+  fprintf fmt "@[<v>%a@]@."
+    (PSpl_syn.print_program
+      begin fun fmt (point:Spl_syn.point) ->
+	let abs = PSHGraph.attrvertex fp point in
+	fprintf fmt "@[<hov>%s%a@ %a%s@]"
+	  (!Option.displaytags).Option.precolorR
+	  PSpl_syn.print_point point
+	  print_abstract1 abs
+	  (!Option.displaytags).Option.postcolor
+      end)
+    prog
+    

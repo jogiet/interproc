@@ -12,6 +12,30 @@ val debug : int ref
   (** debug level *)
 
 (*  ---------------------------------------------------------------------- *)
+(** {3 Solving options} *)
+(*  ---------------------------------------------------------------------- *)
+
+val iteration_depth : int ref
+  (** Depth of recursion in iteration. If the depth is deeper, one tries to
+    stabilize inner loops first before propagating to enclosing loops.*)
+
+val iteration_guided : bool ref
+  (** Guided iteration technique *)
+
+val widening_first : bool ref
+  (** If true, a newly activated incoming edge disables (for this step)
+    widening. *)
+
+val widening_start : int ref
+  (** Number of steps without widening *)
+
+val widening_freq : int ref
+  (** Widening every x steps *)
+
+val widening_descend : int ref
+  (** Number of descending iterations *)
+
+(*  ---------------------------------------------------------------------- *)
 (** {3 Display style} *)
 (*  ---------------------------------------------------------------------- *)
 
@@ -27,20 +51,24 @@ val htmltags : displaytags
 
 val displaytags : displaytags ref
 
+val print_box : bool ref
+
 (*  ---------------------------------------------------------------------- *)
 (** {3 Choice of abstract domain} *)
 (*  ---------------------------------------------------------------------- *)
 
 type domain =
-    Box
+  | Box
   | Octagon
   | PolkaLoose
   | PolkaStrict
   | PolkaEq
+  | Taylor1plus
   | PplPolyLoose
   | PplPolyStrict
   | PplGrid
   | PolkaGrid
+  | BoxPolicy
 val assocnamedomain : (string * domain) list
 val domain : domain ref
 
