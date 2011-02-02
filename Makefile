@@ -9,43 +9,14 @@ PREFIX = $(INTERPROC_PREFIX)
 # For the WEB version
 OCAMLHTML_INSTALL = $(HOME)/pkg/ocamlhtml/$(ARCH)
 
-#
-LCFLAGS = \
--L$(GMP_PREFIX)/lib \
--L$(MPFR_PREFIX)/lib \
--L$(MLGMPIDL_PREFIX)/lib \
--L$(APRON_PREFIX)/lib \
--L$(CAML_PREFIX)/lib/ocaml \
--L$(CAMLIDL_PREFIX)/lib/ocaml \
--L$(FIXPOINT_PREFIX)/lib
+REQ_PKG = "camllib fixpoint gmp apron \
+apron.boxMPQ apron.octMPQ apron.polkaMPQ apron.t1pMPQ apron.ppl apron.polkaGrid"
+REQ_PKGf = "camllib fixpoint gmp apron \
+apron.boxD apron.octD apron.polkaMPQ apron.t1pD apron.ppl apron.polkaGrid"
 
-
-OCAMLLDFLAGS = \
--g -noautolink unix.cma bigarray.cma camllib.cma fixpoint.cma gmp.cma apron.cma boxMPQ.cma octMPQ.cma polkaMPQ.cma t1pD.cma ppl.cma polkaGrid.cma -cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lt1pD_caml -lt1pD -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml -lboxMPQ -lapron_caml -lapron -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
-
-OCAMLOPTLDFLAGS = \
--g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa boxMPQ.cmxa octMPQ.cmxa polkaMPQ.cmxa t1pD.cmxa ppl.cmxa polkaGrid.cmxa \
--cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lt1pD_caml -lt1pD -lpolkaMPQ_caml -lpolkaMPQ -loctMPQ_caml -loctMPQ -lboxMPQ_caml_debug -lboxMPQ_debug -lapron_caml_debug -lapron_debug -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
-
-OCAMLOPTLDFLAGSf = \
--g -noautolink unix.cmxa bigarray.cmxa camllib.cmxa fixpoint.cmxa gmp.cmxa apron.cmxa boxD.cmxa octD.cmxa polkaMPQ.cmxa t1pD.cmxa ppl.cmxa polkaGrid.cmxa \
--cc "g++" -ccopt "-L$(CAML_PREFIX)/lib/ocaml -L$(CAMLIDL_PREFIX)/lib/ocaml -L$(APRON_PREFIX)/lib -L$(GMP_PREFIX)/lib -L$(MPFR_PREFIX)/lib -L$(MLGMPIDL_PREFIX)/lib -L$(PPL_PREFIX)/lib" -cclib "-lpolkaGrid_caml -lap_pkgrid -lap_ppl_caml -lap_ppl -lppl -lgmpxx -lt1pD_caml -lt1pD -lpolkaMPQ_caml -lpolkaMPQ -loctD_caml -loctD -lboxD_caml_debug -lboxD_debug -lapron_caml_debug -lapron_debug -lgmp_caml -lmpfr -lgmp -lunix -lbigarray -lcamlidl"
-
-OCAMLINC = \
--I $(OCAMLHTML_INSTALL)/lib \
--I $(CAMLLIB_PREFIX)/lib \
--I $(FIXPOINT_PREFIX)/lib \
--I $(APRON_PREFIX)/lib \
--I $(MLGMPIDL_PREFIX)/lib \
--I $(CAMLIDL_PREFIX)/lib/ocaml
+OCAMLINC = -I $(OCAMLHTML_INSTALL)/lib
 
 MLMODULES = spl_syn pSpl_syn spl_yacc spl_lex boolexpr equation syn2equation option solving solvingPolicy frontend
-MLSRC =  $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli)
-
-INT = $(MLMODULES:%=%.cmi)
-OBJ = $(MLMODULES:%=%.cmo)
-OBJx = $(MLMODULES:%=%.cmx)
-
 
 #---------------------------------------
 # Rules
@@ -54,17 +25,16 @@ OBJx = $(MLMODULES:%=%.cmx)
 # Global rules
 all: interproc.byte interproc.opt interprocf.opt
 
-interproc.byte: $(OBJ) interproc.cmo 
-	$(OCAMLC) -g -o $@ -custom $(OCAMLFLAGS) $(OCAMLINC) \
-	$(OCAMLLDFLAGS) fixpoint.cma $(OBJ) interproc.cmo
+interproc.byte: $(MLMODULES:%=%.cmo) interproc.cmo 
+	$(OCAMLFIND) ocamlc $(OCAMLFLAGS) $(OCAMLINC) -package $(REQ_PKG) -linkpkg \
+	-o $@ $^
+interproc.opt: $(MLMODULES:%=%.cmx) interproc.cmx
+	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -package $(REQ_PKG) -linkpkg \
+	-o $@ $^
 
-interproc.opt: $(OBJx) interproc.cmx
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) \
-	$(OCAMLOPTLDFLAGS) fixpoint.cmxa $(OBJx) interproc.cmx
-
-interprocf.opt: $(OBJx) interproc.cmx
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) \
-	$(OCAMLOPTLDFLAGSf) fixpoint.cmxa $(OBJx) interproc.cmx
+interprocf.opt: $(MLMODULES:%=%.cmx) interproc.cmx
+	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -package $(REQ_PKGf) -linkpkg \
+	-o $@ $^
 
 install:
 	$(INSTALLd) $(PREFIX)/bin
@@ -72,26 +42,23 @@ install:
 		$(INSTALL) $$i $(PREFIX)/bin; \
 	done
 
-distclean: clean
+uninstall:
 	for i in interproc.byte interproc.opt interprocf.opt; do \
 		/bin/rm -f $(PREFIX)/bin/$$i; \
 	done
 
-interprocweb.cgi: $(OBJx) interprocweb.cmx mainweb.cmx
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) -ccopt "-static" $(OCAMLOPTLDFLAGS) \
-	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx mainweb.cmx
-interprocwebf.cgi: $(OBJx) interprocweb.cmx mainwebf.cmx 
-	$(OCAMLOPT) -o $@ -verbose $(OCAMLINC) -ccopt "-static" $(OCAMLOPTLDFLAGSf) \
-	fixpoint.cmxa html.cmxa $(OBJx) interprocweb.cmx mainwebf.cmx 
+interprocweb.cgi: $(MLMODULES:%=%.cmx) interprocweb.cmx mainweb.cmx
+	$(OCAMLFIND) ocamlopt -o $@ -verbose $(OCAMLINC) -ccopt "-static"  \
+	-package $(REQ_PKG) -linkpkg html.cmxa $^
+interprocwebf.cgi: $(MLMODULES:%=%.cmx) interprocweb.cmx mainweb.cmx
+	$(OCAMLFIND) ocamlopt -o $@ -verbose $(OCAMLINC) -ccopt "-static"  \
+	-package $(REQ_PKGf) -linkpkg html.cmxa $^
 
-mostlyclean: clean
+distclean: clean
 	$(RM) -r *.pdf html Makefile.depend
 
 clean:
 	$(RM) *.[aoc] *.cm[ioxa] *.annot spl_lex.ml spl_yacc.ml spl_yacc.mli interproc.byte interproc.opt interprocf.opt interprocweb interprocweb.cgi *~ *.idx *.ilg *.ind *.log *.toc *.dvi *.out *.aux *.bbl *.blg *.makeimage *.html *.png *.ps ocamldoc.* *.output
-
-dist: Makefile Makefile.config.model COPYING README $(MLSRC) interproc.ml interproc.mli interprocweb.ml interprocweb.mli manual.tex manual.bib interproc.tex mypanels.hlx examples manual.pdf 
-	(cd ..; tar zcvf $(HOME)/interproc.tgz $(^:%=interproc/%))
 
 #---------------------------------------
 # TEX and HTML rules
@@ -150,15 +117,18 @@ online: interprocweb.cgi interprocwebf.cgi
 	$(OCAMLYACC) $^
 
 %.cmi: %.mli
-	$(OCAMLC) -g $(OCAMLFLAGS) $(OCAMLINC) -c $<
+	$(OCAMLFIND) ocamlc $(OCAMLFLAGS) $(OCAMLINC) -package $(REQ_PKG) -c $<
 
 %.cmo: %.ml
-	$(OCAMLC) -g $(OCAMLFLAGS) $(OCAMLINC) -c $<
+	$(OCAMLFIND) ocamlc $(OCAMLFLAGS) $(OCAMLINC) -package $(REQ_PKG) -c $<
 
 %.cmx: %.ml
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLINC) -c $<
+	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -package $(REQ_PKG) -c $<
+
+depend: spl_yacc.ml spl_yacc.mli spl_lex.ml
+	$(OCAMLFIND) ocamldep -package $(REQ_PKG) $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
 
 Makefile.depend: spl_yacc.ml spl_yacc.mli spl_lex.ml
-	$(OCAMLDEP) $(MLSRC) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
+	$(OCAMLFIND) ocamldep -package $(REQ_PKG) $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
 
 -include Makefile.depend

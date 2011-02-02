@@ -12,8 +12,8 @@ C/OCaml library
   apron (http://svn.cri.ensmp.fr/apron)
 
 OCaml system
-Camlidl
-
+Camlidl (http://caml.inria.fr/camlidl)
+FINDLIB (http://projects.camlcity.org/projects/findlib.html)
 To configure
 ============
 - copy Makefile.config.model into Makefile.config
