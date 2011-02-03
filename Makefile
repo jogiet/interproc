@@ -126,9 +126,9 @@ online: interprocweb.cgi interprocwebf.cgi
 	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -package $(REQ_PKG) -c $<
 
 depend: spl_yacc.ml spl_yacc.mli spl_lex.ml
-	$(OCAMLFIND) ocamldep -package $(REQ_PKG) $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
+	$(OCAMLFIND) ocamldep $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
 
 Makefile.depend: spl_yacc.ml spl_yacc.mli spl_lex.ml
-	$(OCAMLFIND) ocamldep -package $(REQ_PKG) $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
+	$(OCAMLFIND) ocamldep $(MLMODULES:%=%.ml) $(MLMODULES:%=%.mli) interproc.ml interproc.mli interprocweb.ml interprocweb.mli mainweb.ml mainwebf.ml >Makefile.depend
 
 -include Makefile.depend
