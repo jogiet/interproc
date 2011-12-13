@@ -11,7 +11,7 @@ OCaml libraries
 C/OCaml library
   apron (http://svn.cri.ensmp.fr/apron)
 
-OCaml system
+OCaml 3.12.0 or up (OCaml 3.11.0 may work, it depends on APRON library) (http://caml.inria.fr) 
 Camlidl (http://caml.inria.fr/camlidl)
 FINDLIB (http://projects.camlcity.org/projects/findlib.html)
 To configure

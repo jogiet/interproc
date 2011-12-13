@@ -206,14 +206,14 @@ let tcons_of_cons env (cons:Spl_syn.cons) : Apron.Tcons1.t
 let rec push_not (bexpr:Spl_syn.bexpr) : Spl_syn.bexpr
     =
   match bexpr with
-  | TRUE | FALSE | BRANDOM | CONS _ -> 
+  | TRUE | FALSE | BRANDOM | CONS _ ->
       bexpr
   | NOT(e) ->
       begin match e with
       | TRUE -> FALSE
       | FALSE -> TRUE
       | BRANDOM -> BRANDOM
-      | CONS(cons) -> e 
+      | CONS(cons) -> e
       | AND(e1,e2) -> OR(push_not (NOT e1), push_not (NOT e2))
       | OR(e1,e2) -> AND(push_not (NOT e1), push_not (NOT e2))
       | NOT(e) -> push_not e
@@ -226,7 +226,7 @@ let boolexpr0_of_bexpr env (bexpr:Spl_syn.bexpr)
     Apron.Tcons1.t array Boolexpr.t
     =
   let cand t1 t2 = Boolexpr.make_conjunction (Array.append t1 t2) in
-  let rec translate bexpr = 
+  let rec translate bexpr =
     match bexpr with
     | TRUE | BRANDOM -> Boolexpr.make_cst true
     | FALSE -> Boolexpr.make_cst false
@@ -249,7 +249,7 @@ let boolexpr0_of_bexpr env (bexpr:Spl_syn.bexpr)
 	| AND(e1,e2) ->
 	    Boolexpr.make_or (translate (NOT e1)) (translate (NOT e2))
 	| OR(e1,e2) ->
-	    Boolexpr.make_and ~cand 
+	    Boolexpr.make_and ~cand
 	      (translate (NOT e1)) (translate (NOT e2))
 	| NOT(e) -> translate e
 	end
