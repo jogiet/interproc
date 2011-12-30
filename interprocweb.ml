@@ -202,11 +202,13 @@ or choose one the provided examples:"
     [
       Option (None, "none", "Choose an Abstract Domain:", false);
       Option (None, "box", "box", false);
+      Option (None, "boxpolicy", "box with policy iteration", false);
       Option (None, "octagon", "octagon", false);
       Option (None, "polka", "convex polyhedra (polka)", true);
       Option (None, "ppl", "convex polyhedra (PPL)", false);
       Option (None, "polkastrict", "strict convex polyhedra (polka)", false);
       Option (None, "pplstrict", "strict convex polyhedra (PPL)", false);
+      Option (None, "polkaeq", "linear equalities (polka)", false);
       Option (None, "pplgrid", "linear congruences (PPL)", false);
       Option (None, "polkagrid", "convex polyhedra + linear congruences", false);
     ];
@@ -347,8 +349,7 @@ let mainpage ~(opt:option) =
       | _ -> raise Exit
     in
 
-    Solving.iteration_guided := false;
-    Solving.widening_first := false;
+    Option.iteration_guided := false;
 
     List.iter
       (begin function
@@ -372,15 +373,11 @@ let mainpage ~(opt:option) =
 	      Option.analysis := [Option.Forward]
 	    ;
 	| ("guided",Some "on") ->
-	    Solving.iteration_guided := true
-	| ("widening_first",Some "on") ->
-	    Solving.widening_first := true
+	    Option.iteration_guided := true
 	| ("widening_start",Some text) ->
-	    Solving.widening_start := int_of_string text;
-	| ("widening_frequency",Some text) ->
-	    Solving.widening_freq := int_of_string text;
+	    Option.widening_start := int_of_string text;
 	| ("descending",Some text) ->
-	    Solving.widening_descend := int_of_string text;
+	    Option.widening_descend := int_of_string text;
 	| ("debug",Some text) ->
 	    Option.debug := int_of_string text;
 	| _ -> ()
