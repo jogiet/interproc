@@ -48,10 +48,10 @@ uninstall:
 	done
 
 interprocweb.cgi: $(MLMODULES:%=%.cmx) interprocweb.cmx mainweb.cmx
-	$(OCAMLFIND) ocamlopt -o $@ -verbose $(OCAMLINC) -ccopt "-static"  \
+	$(OCAMLFIND) ocamlopt -o $@ -verbose $(OCAMLINC) -cc "g++" -ccopt "-static"  \
 	-package $(REQ_PKG) -linkpkg html.cmxa $^
 interprocwebf.cgi: $(MLMODULES:%=%.cmx) interprocweb.cmx mainweb.cmx
-	$(OCAMLFIND) ocamlopt -o $@ -verbose $(OCAMLINC) -ccopt "-static"  \
+	$(OCAMLFIND) ocamlopt -o $@ -verbose $(OCAMLINC) -cc "g++" -ccopt "-static"  \
 	-package $(REQ_PKGf) -linkpkg html.cmxa $^
 
 distclean: clean
@@ -79,7 +79,7 @@ interproc.pdf: interproc.dvi
 	$(DVIPDF) interproc.dvi
 
 interproc.dvi: $(MLINT) $(MLSRC)
-	$(OCAMLDOC) $(OCAMLINC) \
+	$(OCAMLFIND) ocamldoc $(OCAMLINC) $(OCAMLINC) -package $(REQ_PKG) \
 	-latextitle 1,chapter -latextitle 2,section -latextitle 3,subsection -latextitle 4,subsubsection -latextitle 5,paragraph -latextitle 6,subparagraph -noheader -notrailer -latex -o ocamldoc.tex $(MLMODULES:%=%.mli) interproc.mli
 	$(LATEX) interproc
 	$(LATEX) interproc
@@ -87,13 +87,12 @@ interproc.dvi: $(MLINT) $(MLSRC)
 
 html: $(MLINT) $(MLSRC)
 	mkdir -p html
-	$(OCAMLDOC) $(OCAMLINC) -html -d html -colorize-code $(MLMODULES:%=%.mli)
+	$(OCAMLFIND) ocamldoc $(OCAMLINC) -package $(REQ_PKG) -html -d html -colorize-code $(MLMODULES:%=%.mli)
 
 homepage: html interproc.pdf manual.pdf
 	hyperlatex -gif manual
 	hyperlatex manual	
-	cp -r html interproc.pdf manual.pdf *.ps *.png $(HOME)/web/bjeannet-forge/interproc
-	cp manual*.html $(HOME)/web/bjeannet-forge/interproc
+	cp -r html interproc.pdf manual.pdf manual*.html *.ps *.png /home/wwwpop-art/people/bjeannet/bjeannet-forge/interproc
 
 online: interprocweb.cgi interprocwebf.cgi 
 	chmod a+rX $^
