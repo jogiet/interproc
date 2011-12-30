@@ -121,7 +121,7 @@ var t1:int, t2:int;
 begin
   if (n>100) then
      r = n-10;
-  else 
+  else
      t1 = n+11;
      t2 = MC(t1);
      r = MC(t2);
@@ -134,7 +134,7 @@ begin
 end
 \end{prog}
 }
-                                
+
 % ======================================================================
 \xname{manual_syntax}
 \subsection{Syntax and informal semantics}
@@ -197,9 +197,9 @@ The \texttt{assume expr} instruction is equivalent to \texttt{if
   expr then skip; else halt;} . It may be used to abstract
 non-deterministic assignements. For instance, the
 non-deterministic assignement of a value between 0 and 2 to a
-variable \texttt{x} can be written as 
+variable \texttt{x} can be written as
 \begin{prog}
-  x = random; 
+  x = random;
   assume x>=0 and x<=2;
 \end{prog}
 
@@ -222,7 +222,7 @@ Conditional and iteration constructions have the usual semantics.
   &\sor& \sx{constraint} \\
   &\sor& \pkw{not} \sx{bexpr} \sor \sx{bexpr} \pkw{or} \sx{bexpr} \sor \sx{bexpr} \pkw{and} \sx{bexpr} \\
   &\sor& \tk{(} \sx{bexpr} \tk{)} \\
-  \sx{constraint} &::=& \sx{nexpr} (\tk{=} \texttt{|} \tk{>=} \texttt{|} \tk{>} \texttt{|} \tk{<=} \texttt{|} \tk{<}) \sx{nexpr}
+  \sx{constraint} &::=& \sx{nexpr} (\tk{==} \texttt{|} \tk{>=} \texttt{|} \tk{>} \texttt{|} \tk{<=} \texttt{|} \tk{<}) \sx{nexpr}
 \end{syntax}
 
 Atoms of Boolean expressions are Boolean constants, the unknown
@@ -311,7 +311,7 @@ We illustrate the syntax and (approximated) semantics of numerival
 expressions with the following program, annotated by Interproc
 using the command
 \begin{example}
-  interproc.opt -domain polka -colorize false examples/numerical.spl  
+  interproc.opt -domain polka -colorize false examples/numerical.spl
 \end{example}
 
 {
@@ -342,12 +342,12 @@ begin
   y = 2; /* (L24 C8) \textcolor{red}{[|y-2=0; x-5=0|]} */
   z = x / y; /* (L25 C10) \textcolor{red}{[|2z-5=0; y-2=0; x-5=0|]} */
   y = 0.1; /* (L26 C10)
-              \textcolor{red}{[|2z-5=0; 36028797018963968y-3602879701896397=0; x-5=0|]} */
+	      \textcolor{red}{[|2z-5=0; 36028797018963968y-3602879701896397=0; x-5=0|]} */
   z = x + y; /* (L27 C10)
-                \textcolor{red}{[|36028797018963968z-183746864796716237=0;
-                  36028797018963968y-3602879701896397=0; x-5=0|]} */
+		\textcolor{red}{[|36028797018963968z-183746864796716237=0;
+		  36028797018963968y-3602879701896397=0; x-5=0|]} */
   z = z - y; /* (L28 C10)
-                \textcolor{red}{[|z-5=0; 36028797018963968y-3602879701896397=0; x-5=0|]} */
+		\textcolor{red}{[|z-5=0; 36028797018963968y-3602879701896397=0; x-5=0|]} */
 end
 
 proc floating () returns (z : real) var x : real, y : real;
@@ -356,29 +356,29 @@ begin
   x = 5; /* (L34 C8) \textcolor{red}{[|x-5=0|]} */
   y = 2; /* (L35 C8) \textcolor{red}{[|y-2=0; x-5=0|]} */
   z = x /_f,? y; /* (L36 C13)
-                    \textcolor{red}{[|y-2=0; x-5=0;
-                      -713623846352979940529142984724747568191373312z
-                      +1784059828558929176909397126420998565333565441>=0;
-                      713623846352979940529142984724747568191373312z
-                      -1784059403205970525736317797202739275623301119>=0|]} */
+		    \textcolor{red}{[|y-2=0; x-5=0;
+		      -713623846352979940529142984724747568191373312z
+		      +1784059828558929176909397126420998565333565441>=0;
+		      713623846352979940529142984724747568191373312z
+		      -1784059403205970525736317797202739275623301119>=0|]} */
   y = 0.1; /* (L37 C10)
-              \textcolor{red}{[|36028797018963968y-3602879701896397=0; x-5=0;
-                -713623846352979940529142984724747568191373312z
-                +1784059828558929176909397126420998565333565441>=0;
-                713623846352979940529142984724747568191373312z
-                -1784059403205970525736317797202739275623301119>=0|]} */
+	      \textcolor{red}{[|36028797018963968y-3602879701896397=0; x-5=0;
+		-713623846352979940529142984724747568191373312z
+		+1784059828558929176909397126420998565333565441>=0;
+		713623846352979940529142984724747568191373312z
+		-1784059403205970525736317797202739275623301119>=0|]} */
   z = x +_f,? y; /* (L38 C14)
-                    \textcolor{red}{[|36028797018963968y-3602879701896397=0; x-5=0;
-                      -713623846352979940529142984724747568191373312z
-                      +3639482050260215524856578735848702239922192385>=0;
-                      713623846352979940529142984724747568191373312z
-                      -3639481182540179876463495959770156714984210431>=0|]} */
+		    \textcolor{red}{[|36028797018963968y-3602879701896397=0; x-5=0;
+		      -713623846352979940529142984724747568191373312z
+		      +3639482050260215524856578735848702239922192385>=0;
+		      713623846352979940529142984724747568191373312z
+		      -3639481182540179876463495959770156714984210431>=0|]} */
   z = z -_f,? y; /* (L39 C14)
-                    \textcolor{red}{[|36028797018963968y-3602879701896397=0; x-5=0;
-                      -5986310706507378352962293074805895248510699696029696z
-                      +29931560882862943060522688904967984086376852368654337>=0;
-                      5986310706507378352962293074805895248510699696029696z
-                      -29931546182211708189135890236173744477275669529624577>=0|]} */
+		    \textcolor{red}{[|36028797018963968y-3602879701896397=0; x-5=0;
+		      -5986310706507378352962293074805895248510699696029696z
+		      +29931560882862943060522688904967984086376852368654337>=0;
+		      5986310706507378352962293074805895248510699696029696z
+		      -29931546182211708189135890236173744477275669529624577>=0|]} */
 end
 
 var z : real
@@ -387,10 +387,10 @@ begin
   () = integer(); /* (L44 C17) \textcolor{red}{top} */
   z = exact(); /* (L45 C14) \textcolor{red}{[z-5=0|]} */
   z = floating(); /* (L46 C17)
-                     \textcolor{red}{[|-5986310706507378352962293074805895248510699696029696z
-                       +29931560882862943060522688904967984086376852368654337>=0;
-                       5986310706507378352962293074805895248510699696029696z
-                       -29931546182211708189135890236173744477275669529624577>=0|]} */
+		     \textcolor{red}{[|-5986310706507378352962293074805895248510699696029696z
+		       +29931560882862943060522688904967984086376852368654337>=0;
+		       5986310706507378352962293074805895248510699696029696z
+		       -29931546182211708189135890236173744477275669529624577>=0|]} */
 end
 \end{prog}
 }
@@ -577,7 +577,7 @@ begin
   while x <= z do
     /* (L8 C17) \textcolor{red}{[|-3x+y=0; -x+z>=0; -z+20>=0; z-10>=0; x>=0|]} */
     x = x + 1; /* (L9 C12)
-                  \textcolor{red}{[|-3x+y+3=0; -x+z+1>=0; -z+20>=0; z-10>=0; x-1>=0|]} */
+		  \textcolor{red}{[|-3x+y+3=0; -x+z+1>=0; -z+20>=0; z-10>=0; x-1>=0|]} */
     y = y + 3; /* (L10 C12) \textcolor{red}{[|-3x+y=0; -x+z+1>=0; -z+20>=0; z-10>=0; x-1>=0|]} */
   done; /* (L11 C7) \textcolor{red}{[|-3x+y=0; -x+z+1=0; -x+21>=0; x-11>=0|]} */
   if y >= 42 then
@@ -635,12 +635,12 @@ A backward analysis computes the set of states from which one
 can reach a \texttt{fail} instruction.
 
 The set of states coreachable from a \texttt{fail} instruction is
-defined as: 
+defined as:
 \htmlonly{\begin{quote}}\begin{image}{coreach0}
 $$
 Coreach = \{ s\in S ~|~ s\rightarrow^* s_f \wedge s_f\in F \}
 $$
-with the set of final states 
+with the set of final states
 $$
 F = \{ \omega\cdot (k,\epsilon) ~|~ k\in K_\mathrm{fail} \wedge \epsilon\in\mathrm{Env} \}
 $$
@@ -692,7 +692,7 @@ begin
   while x <= z do
     /* (L8 C17) \textcolor{red}{[|-3x+y=0; -x+z>=0; -z+20>=0; z-10>=0; x>=0|]} */
     x = x + 1; /* (L9 C12)
-                  \textcolor{red}{[|-3x+y+3=0; -x+z+1>=0; -z+20>=0; z-10>=0; x-1>=0|]} */
+		  \textcolor{red}{[|-3x+y+3=0; -x+z+1>=0; -z+20>=0; z-10>=0; x-1>=0|]} */
     y = y + 3; /* (L10 C12) \textcolor{red}{[|-3x+y=0; -x+z+1>=0; -z+20>=0; z-10>=0; x-1>=0|]} */
   done; /* (L11 C7) \textcolor{red}{[|-3x+y=0; -x+z+1=0; -x+21>=0; x-11>=0|]} */
   if y >= 42 then
@@ -711,7 +711,7 @@ begin
   while x <= z do
     /* (L8 C17) \textcolor{red}{[|-3x+y=0; -x+z>=0; -z+20>=0; z-13>=0; x>=0|]} */
     x = x + 1; /* (L9 C12)
-                  \textcolor{red}{[|-3x+y+3=0; -x+z+1>=0; -z+20>=0; z-13>=0; x-1>=0|]} */
+		  \textcolor{red}{[|-3x+y+3=0; -x+z+1>=0; -z+20>=0; z-13>=0; x-1>=0|]} */
     y = y + 3; /* (L10 C12) \textcolor{red}{[|-3x+y=0; -x+z+1>=0; -z+20>=0; z-13>=0; x-1>=0|]} */
   done; /* (L11 C7) \textcolor{red}{[|-3x+y=0; -x+z+1=0; -x+21>=0; x-14>=0|]} */
   if y >= 42 then
