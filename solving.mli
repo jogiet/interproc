@@ -120,7 +120,7 @@ val print_output :
   unit
 
 (*  ********************************************************************* *)
-(** {2 Internal useful for {!SolvingPolicy} *)
+(** {2 Internal useful for {!SolvingPolicy}} *)
 (*  ********************************************************************* *)
 val make_emptyoutput :
   (Spl_syn.point, int, 'a, 'b, Equation.info) PSHGraph.t ->
