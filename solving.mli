@@ -6,6 +6,20 @@
    Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
 *)
 
+val make_fpmanager :
+  fmt:Format.formatter ->
+  output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
+  debug:int ->
+  graph:Equation.graph ->
+  man:'a Apron.Manager.t ->
+  abstract_init:(Spl_syn.point -> 'a Apron.Abstract1.t) ->
+  apply:(Equation.graph ->
+    output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
+    'a Apron.Manager.t ->
+    Equation.hedge ->
+    'a Apron.Abstract1.t array -> unit * 'a Apron.Abstract1.t) ->
+  (Spl_syn.point, Equation.hedge, 'a Apron.Abstract1.t, unit) Fixpoint.manager
+
 (*  ********************************************************************* *)
 (** {2 Forward analysis} *)
 (*  ********************************************************************* *)
@@ -116,7 +130,7 @@ end
 val print_output :
   Spl_syn.program ->
   Format.formatter ->
-  (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output -> 
+  (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output ->
   unit
 
 (*  ********************************************************************* *)

@@ -45,85 +45,42 @@ let hash_policy_print pman fmt p =
 *)
 let make_fpmanager
     ~(fmt : Format.formatter)
-    (graph: Equation.graph)
-    ~(policy:(Equation.hedge, 'a policy) Hashhe.t)
-    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
-    (apply :
-      Equation.graph ->
-      policy:(Equation.hedge, 'a policy) Hashhe.t ->
-      output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
-      'a Apron.Policy.man ->
-      int -> 'a Apron.Abstract1.t array ->
-      unit * 'a Apron.Abstract1.t)
-    (abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
-    (pman:'abstract Apron.Policy.man)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ref)
     ~(debug:int)
+    ~(graph: Equation.graph)
+    ~(policy:(Equation.hedge, 'a policy) Hashhe.t ref)
+    ~(pman:'abstract Apron.Policy.man)
+    ~(abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
+    ~(apply :
+      Equation.graph ->
+       output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ref ->
+       policy:(Equation.hedge, 'a policy) Hashhe.t ref ->
+       'a Apron.Policy.man ->
+       Equation.hedge ->
+       'a Apron.Abstract1.t array -> unit * 'a Apron.Abstract1.t)
     :
     (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.manager
     =
   let man = Apron.Policy.manager_get_manager pman in
-  let info = PSHGraph.info graph in
   {
-    (* Lattice operation *)
-    Fixpoint.bottom = begin fun vtx ->
-      Apron.Abstract1.bottom man (Hashhe.find info.Equation.pointenv vtx)
-    end;
-    Fixpoint.canonical = begin fun vtx abs -> ()
-      (* Apron.Abstract1.canonicalize man abs *)
-    end;
-    Fixpoint.is_bottom = begin fun vtx abs ->
-      Apron.Abstract1.is_bottom man abs
-    end;
-    Fixpoint.is_leq = begin fun vtx abs1 abs2 ->
-      Apron.Abstract1.is_leq man abs1 abs2
-    end;
-    Fixpoint.join = begin fun vtx abs1 abs2 ->
-      Apron.Abstract1.join man abs1 abs2
-    end;
-    Fixpoint.join_list = begin fun vtx labs ->
-      Apron.Abstract1.join_array man (Array.of_list labs)
-    end;
-    Fixpoint.widening = begin fun vtx abs1 abs2 ->
-      Apron.Abstract1.widening man abs1 abs2
-    end;
-    (* Initialisation of equations *)
-    Fixpoint.abstract_init = abstract_init;
-    Fixpoint.arc_init = begin fun hedge -> () end;
+    begin
+      Solving.make_fpmanager ~fmt ~output:None ~debug ~graph
+      ~man
+      ~abstract_init ~apply:(fun _ -> failwith "")
+    end
+  with
     (* Interpreting hyperedges *)
     Fixpoint.apply = begin fun hedge tx ->
-      apply graph ~policy ~output pman hedge tx
+      apply graph ~output ~policy pman hedge tx
     end;
-    (* Printing functions *)
-    Fixpoint.print_vertex=PSpl_syn.print_point;
-    Fixpoint.print_hedge=pp_print_int;
-    Fixpoint.print_abstract = Apron.Abstract1.print;
-    Fixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
-    (* Fixpoint Options *)
-    Fixpoint.accumulate = true;
-    (* Widening Options *)
-    Fixpoint.widening_start = !Option.widening_start;
-    Fixpoint.widening_descend = !Option.widening_descend;
-    (* Printing Options *)
-    Fixpoint.print_fmt = fmt;
-    Fixpoint.print_analysis=debug>=1;
-    Fixpoint.print_component=debug>=2;
-    Fixpoint.print_step=debug>=3;
-    Fixpoint.print_state=debug>=4;
-    Fixpoint.print_postpre=debug>=5;
-    Fixpoint.print_workingsets=debug>=6;
-    (* DOT Options *)
-    Fixpoint.dot_fmt = None;
-    Fixpoint.dot_vertex=PSpl_syn.print_point;
-    Fixpoint.dot_hedge=pp_print_int;
-    Fixpoint.dot_attrvertex=PSpl_syn.print_point;
-    Fixpoint.dot_attrhedge=(fun fmt hedge -> ());
   }
 
 (** Make an output graph filled with bottom abstract values *)
 let make_emptyoutput = Solving.make_emptyoutput
 let environment_of_tvar = Solving.environment_of_tvar
 
-let make_policy pmanager graph =
+let make_policy pmanager graph rooutput =
+  let manager = Apron.Policy.manager_get_manager pmanager in
   let info = PSHGraph.info graph in
   let policy = Hashhe.create 31 in
   PSHGraph.iter_hedge graph
@@ -131,38 +88,45 @@ let make_policy pmanager graph =
       begin match transfer with
       | Equation.Condition cond ->
 	  let env = Hashhe.find info.Equation.pointenv pred.(0) in
-	  let p = Boolexpr.map
-	    (fun conj -> Apron.Policy.Abstract1.alloc pmanager env)
-	    cond
+	  let abs = match !rooutput with
+	    | None ->
+		Apron.Abstract1.top manager env
+	    | Some(output) ->
+		PSHGraph.attrvertex output pred.(0)
+	  in
+	  let p =
+	    Boolexpr.map
+	      (fun conj ->
+		Apron.Policy.Abstract1.meet_tcons_array_improve
+		  pmanager None abs conj)
+	      cond
 	  in
 	  Hashhe.add policy hedge p;
       | _ -> ()
       end
     end)
   ;
-  policy
+  ref policy
 
 let apply_condition
     (pmanager:'a Apron.Policy.man)
-    (policy:'a Apron.Policy.t Boolexpr.t)
-    (mode:Apron.Policy.mode)
+    (bpolicy:'a Apron.Policy.t Boolexpr.t)
     (abstract:'a Apron.Abstract1.t)
     (expr:Apron.Tcons1.earray Boolexpr.t)
     (dest:'a Apron.Abstract1.t option)
     :
     'a Apron.Abstract1.t
     =
-  let labstract =
-    match (expr,policy) with
-    | (Boolexpr.TRUE, Boolexpr.TRUE) ->
-	[abstract]
-    | (Boolexpr.DISJ lconj),(Boolexpr.DISJ lpolicy) ->
-	List.map2
-	  (fun conj policy ->
-	    Apron.Policy.Abstract1.meet_tcons_array
-	      pmanager policy mode abstract conj)
-	  lconj lpolicy
-    | _ -> failwith ""
+  let dabstract =
+    Boolexpr.map2
+      (fun policy conj ->
+	Apron.Policy.Abstract1.meet_tcons_array_apply
+	  pmanager policy abstract conj)
+      bpolicy expr
+  in
+  let labstract = match dabstract with
+    | Boolexpr.TRUE -> [abstract]
+    | Boolexpr.DISJ l -> l
   in
   let manager = Apron.Policy.manager_get_manager pmanager in
   let labstract =
@@ -177,7 +141,30 @@ let apply_condition
   | [] ->
       Apron.Abstract1.bottom manager (Apron.Abstract1.env abstract)
   | [x] -> x
-  | _	  -> Apron.Abstract1.join_array manager (Array.of_list labstract)
+  | _   -> Apron.Abstract1.join_array manager (Array.of_list labstract)
+
+let improve_condition
+    (pmanager:'a Apron.Policy.man)
+    (obpolicy:'a Apron.Policy.t Boolexpr.t option)
+    (abstract:'a Apron.Abstract1.t)
+    (expr:Apron.Tcons1.earray Boolexpr.t)
+    (dest:'a Apron.Abstract1.t option)
+    :
+    'a Apron.Policy.t Boolexpr.t
+    =
+  match obpolicy with
+  | None ->
+      Boolexpr.map
+	(fun conj ->
+	  Apron.Policy.Abstract1.meet_tcons_array_improve
+	    pmanager None abstract conj)
+	expr
+  | Some bpolicy ->
+      Boolexpr.map2
+	(fun policy conj ->
+	  Apron.Policy.Abstract1.meet_tcons_array_improve
+	    pmanager (Some policy) abstract conj)
+	bpolicy expr
 
 (*  ********************************************************************** *)
 (** {2 Forward semantics} *)
@@ -192,9 +179,8 @@ module Forward = struct
   (** Main transfer function *)
   let apply
     (graph:Equation.graph)
-    ~(policy:(Equation.hedge, 'a policy) Hashhe.t)
-    ~(mode:Apron.Policy.mode)
-    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ref)
+    ~(policy:(Equation.hedge, 'a policy) Hashhe.t ref)
     (pmanager:'a Apron.Policy.man)
     (hedge:int)
     (tabs:'a Apron.Abstract1.t array)
@@ -203,7 +189,7 @@ module Forward = struct
     =
     let transfer = PSHGraph.attrhedge graph hedge in
     let abs = tabs.(0) in
-    let dest = match output with
+    let dest = match !output with
       | None -> None
       | Some(output) ->
 	  let tdest = PSHGraph.succvertex graph hedge in
@@ -219,8 +205,8 @@ module Forward = struct
       | Equation.Lassign _ ->
 	  failwith ""
       | Equation.Condition cond ->
-	  let policy = Hashhe.find policy hedge in
-	  apply_condition pmanager policy mode abs cond dest
+	  let policy = Hashhe.find !policy hedge in
+	  apply_condition pmanager policy abs cond dest
       | Equation.Call(callerinfo,calleeinfo,tin,tout) ->
 	  Solving.Forward.apply_call manager abs calleeinfo tin dest
       | Equation.Return(callerinfo,calleeinfo,tin,tout) ->
@@ -244,10 +230,12 @@ module Forward = struct
       =
     let manager = Apron.Policy.manager_get_manager pmanager in
     let info = PSHGraph.info graph in
+
+    let output = ref output in
     let sstart =
       let maininfo = Hashhe.find info.Equation.procinfo "" in
       let start = maininfo.Equation.pstart in
-      begin match output with
+      begin match !output with
       | None ->
 	  PSette.singleton Equation.compare_point start
       | Some output ->
@@ -263,7 +251,7 @@ module Forward = struct
     end
     else begin
       let abstract_init = begin fun vertex ->
-	begin match output with
+	begin match !output with
 	| None ->
 	    Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
 	| Some(output) ->
@@ -271,11 +259,12 @@ module Forward = struct
 	end
       end
       in
-      let policy = make_policy pmanager graph in
+      let policy = make_policy pmanager graph output in
       let fpmanager =
-	make_fpmanager ~fmt graph ~policy ~output
-	  (apply ~mode:Apron.Policy.Apply) abstract_init
-	  pmanager ~debug
+	make_fpmanager ~fmt ~output ~debug ~graph
+	  ~policy
+	  ~pman:pmanager
+	  ~abstract_init ~apply
       in
       let result = ref None in
       let loop = ref true in
@@ -300,29 +289,33 @@ module Forward = struct
 	in
 	result := Some fp;
 	(* Display *)
-	printf "policy=%a" (hash_policy_print pmanager) policy;
-	Solving.print_output prog fmt fp;
+	if !Option.debug>0 then begin
+	  printf "policy=%a" (hash_policy_print pmanager) !policy;
+	  Solving.print_output prog fmt fp;
+	end;
 	(* Now try to modify the policy *)
 	loop := false;
-	Hashhe.iter
-	  (begin fun hedge policy ->
-	    let predvertex = (PSHGraph.predvertex graph hedge).(0) in
-	    let abs = PSHGraph.attrvertex fp predvertex in
-	    let transfer = PSHGraph.attrhedge graph hedge in
-	    let oldpolicy = Boolexpr.map (Apron.Policy.copy pmanager) policy in
-	    begin match transfer with
-	    | Equation.Condition cond ->
-		ignore (
-		  apply_condition
-		    pmanager policy Apron.Policy.Change abs cond None
-		)
-	    | _ -> failwith ""
-	    end;
-	    loop := !loop || (not (policy_equal pmanager oldpolicy policy));
-	  end)
-	  policy
+	policy :=
+	  Hashhe.map
+	    (begin fun hedge oldpolicy ->
+	      let predvertex = (PSHGraph.predvertex graph hedge).(0) in
+	      let abs = PSHGraph.attrvertex fp predvertex in
+	      let transfer = PSHGraph.attrhedge graph hedge in
+	      let policy =
+		begin match transfer with
+		| Equation.Condition cond ->
+		    improve_condition pmanager (Some oldpolicy) abs cond None
+		| _ -> failwith ""
+		end
+	      in
+	      loop := !loop || (not (policy_equal pmanager oldpolicy policy));
+	      policy
+	    end)
+	    !policy
 	;
-      done;
+	(* In the next iteration, intersect with the previous one *)
+	output := !result;
+       done;
       begin match !result with
       | Some x -> x
       | None -> failwith ""
@@ -343,9 +336,8 @@ module Backward = struct
   (** Main transfer function *)
   let apply
     (graph:Equation.graph)
-    ~(policy:(Equation.hedge, 'a policy) Hashhe.t)
-    ~(mode:Apron.Policy.mode)
-    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
+    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ref)
+    ~(policy:(Equation.hedge, 'a policy) Hashhe.t ref)
     (pmanager:'a Apron.Policy.man)
     (hedge:int)
     (tabs:'a Apron.Abstract1.t array)
@@ -355,7 +347,7 @@ module Backward = struct
     let manager = Apron.Policy.manager_get_manager pmanager in
     let transfer = PSHGraph.attrhedge graph hedge in
     let abs = tabs.(0) in
-    let dest = match output with
+    let dest = match !output with
       | None -> None
       | Some(output) ->
 	  let tdest = PSHGraph.succvertex graph hedge in
@@ -370,8 +362,8 @@ module Backward = struct
       | Equation.Lassign _ ->
 	  failwith ""
       | Equation.Condition cond ->
-	  let policy = Hashhe.find policy hedge in
-	  apply_condition pmanager policy mode abs cond dest
+	  let policy = Hashhe.find !policy hedge in
+	  apply_condition pmanager policy abs cond dest
       | Equation.Call(callerinfo,calleeinfo,tin,tout) ->
 	  Solving.Backward.apply_call manager abs callerinfo calleeinfo tin dest
       | Equation.Return(callerinfo,calleeinfo,tin,tout) ->
@@ -395,13 +387,15 @@ module Backward = struct
       =
     let manager = Apron.Policy.manager_get_manager pmanager in
     let info = PSHGraph.info graph in
+
+    let output = ref output in
     let sstart = ref (PSette.empty Equation.compare_point) in
     List.iter
       (begin fun procedure ->
 	Spl_syn.iter_eltinstr
 	  (begin fun (bpoint,instr) ->
 	    if instr.Spl_syn.instruction = Spl_syn.FAIL then begin
-	      let ok = match output with
+	      let ok = match !output with
 		| None -> true
 		| Some output ->
 		    let abstract = PSHGraph.attrvertex output bpoint in
@@ -420,7 +414,7 @@ module Backward = struct
     end
     else begin
       let abstract_init = begin fun vertex ->
-	begin match output with
+	begin match !output with
 	| None ->
 	    Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
 	| Some(output) ->
@@ -428,10 +422,12 @@ module Backward = struct
 	end
       end
       in
-      let policy = make_policy pmanager graph in
-      let fpmanager = make_fpmanager ~fmt graph ~policy ~output
-	(apply ~mode:Apron.Policy.Apply) abstract_init
-	pmanager ~debug
+      let policy = make_policy pmanager graph output in
+      let fpmanager =
+	make_fpmanager ~fmt ~output ~debug ~graph
+	  ~policy
+	  ~pman:pmanager
+	  ~abstract_init ~apply
       in
       let result = ref None in
       let loop = ref true in
@@ -455,26 +451,33 @@ module Backward = struct
 		graph !sstart)
 	in
 	result := Some fp;
+	(* Display *)
+	if !Option.debug >0 then begin
+	  printf "policy=%a" (hash_policy_print pmanager) !policy;
+	  Solving.print_output prog fmt fp;
+	end;
 	(* Now try to modify the policy *)
 	loop := false;
-	Hashhe.iter
-	  (begin fun hedge policy ->
-	    let predvertex = (PSHGraph.predvertex graph hedge).(0) in
-	    let abs = PSHGraph.attrvertex fp predvertex in
-	    let transfer = PSHGraph.attrhedge graph hedge in
-	    let oldpolicy = Boolexpr.map (Apron.Policy.copy pmanager) policy in
-	    begin match transfer with
-	    | Equation.Condition cond ->
-		ignore (
-		  apply_condition
-		    pmanager policy Apron.Policy.Change abs cond None
-		)
-	    | _ -> failwith ""
-	    end;
-	    loop := !loop || (not (policy_equal pmanager oldpolicy policy));
-	  end)
-	  policy
+	policy :=
+	  Hashhe.map
+	    (begin fun hedge oldpolicy ->
+	      let predvertex = (PSHGraph.predvertex graph hedge).(0) in
+	      let abs = PSHGraph.attrvertex fp predvertex in
+	      let transfer = PSHGraph.attrhedge graph hedge in
+	      let policy =
+		begin match transfer with
+		| Equation.Condition cond ->
+		    improve_condition pmanager (Some oldpolicy) abs cond None
+		| _ -> failwith ""
+		end
+	      in
+	      loop := !loop || (not (policy_equal pmanager oldpolicy policy));
+	      policy
+	    end)
+	    !policy
 	;
+	(* In the next iteration, intersect with the previous one *)
+	output := !result;
       done;
       begin match !result with
       | Some x -> x

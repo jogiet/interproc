@@ -24,10 +24,15 @@ let print print_elt fmt = function
 	print_elt fmt l
 
 (** Map-iterator, based on an atomic condition transformer *)
-let rec map (f:'a -> 'b) (expr:'a t) : 'b t =
+let map (f:'a -> 'b) (expr:'a t) : 'b t =
   match expr with
   | TRUE -> TRUE
   | DISJ(l) -> DISJ(List.map f l)
+let map2 (f:'a -> 'b -> 'c) (expr1:'a t) (expr2:'b t) : 'c t =
+  match (expr1,expr2) with
+  | TRUE,TRUE -> TRUE
+  | (DISJ l1),(DISJ l2) -> DISJ(List.map2 f l1 l2)
+  | _ -> raise (Invalid_argument "Boolexpr.map2")
 let rec fold2 f res e1 e2 =
   match (e1,e2) with
   | TRUE,TRUE -> res

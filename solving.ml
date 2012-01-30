@@ -26,16 +26,16 @@ open Format
 *)
 let make_fpmanager
     ~(fmt : Format.formatter)
-    (graph: Equation.graph)
     ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
-    (apply :
+    ~(debug:int)
+    ~(graph: Equation.graph)
+    ~(man:'abstract Apron.Manager.t)
+    ~(abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
+    ~(apply :
       Equation.graph ->
       output:(Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option ->
       'a Apron.Manager.t -> int -> 'a Apron.Abstract1.t array ->
       unit * 'a Apron.Abstract1.t)
-    (abstract_init : Spl_syn.point -> 'a Apron.Abstract1.t)
-    (man:'abstract Apron.Manager.t)
-    ~(debug:int)
     :
     (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.manager
     =
@@ -60,6 +60,7 @@ let make_fpmanager
     Fixpoint.join_list = begin fun vtx labs ->
       Apron.Abstract1.join_array man (Array.of_list labs)
     end;
+    Fixpoint.odiff = None;
     Fixpoint.widening = begin fun vtx abs1 abs2 ->
       Apron.Abstract1.widening man abs1 abs2
     end;
@@ -77,9 +78,6 @@ let make_fpmanager
     Fixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
     (* Fixpoint Options *)
     Fixpoint.accumulate = false;
-    (* Widening Options *)
-    Fixpoint.widening_start = !Option.widening_start;
-    Fixpoint.widening_descend = !Option.widening_descend;
     (* Printing Options *)
     Fixpoint.print_fmt = fmt;
     Fixpoint.print_analysis=debug>=1;
@@ -101,7 +99,7 @@ let make_fpmanager
     end;
   }
 
-(** Make an output graph filled with bottom abstract avlues *)
+(** Make an output graph filled with bottom abstract values *)
 let make_emptyoutput
   (graph : (Spl_syn.point,int,'a,'b,'c) PSHGraph.t)
   (manager : 'abstract Apron.Manager.t)
@@ -117,9 +115,8 @@ let make_emptyoutput
     (begin fun info ->
       {
 	Fixpoint.time = 0.0;
-	Fixpoint.iterations = 0;
-	Fixpoint.descendings = 0;
-	Fixpoint.stable = false;
+	Fixpoint.ascending = (let open FixpointType in { nb=0; stable=false }),[];
+	Fixpoint.descending = (let open FixpointType in { nb=0; stable=false }),[];
       }
     end)
 
@@ -346,14 +343,14 @@ module Forward = struct
   (*  ===================================================================== *)
 
   let compute
-    ~(fmt : Format.formatter)
-    (graph:Equation.graph)
-    ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
-    (manager:'a Apron.Manager.t)
-    ~(debug:int)
-    :
-    (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
-    =
+      ~(fmt : Format.formatter)
+      (graph:Equation.graph)
+      ~(output : (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output option)
+      (manager:'a Apron.Manager.t)
+      ~(debug:int)
+      :
+      (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
+      =
     let info = PSHGraph.info graph in
     let sstart =
       let maininfo = Hashhe.find info.Equation.procinfo "" in
@@ -383,9 +380,9 @@ module Forward = struct
       end
       in
       let fpmanager =
-	make_fpmanager ~fmt graph ~output
-	  apply abstract_init
-	  manager ~debug
+	make_fpmanager ~fmt ~output ~debug ~graph
+	  ~man:manager
+	  ~abstract_init ~apply
       in
       let fp =
 	if !Option.iteration_guided then
@@ -396,6 +393,9 @@ module Forward = struct
 		~vertex_dummy:Equation.vertex_dummy
 		~hedge_dummy:Equation.hedge_dummy
 		~priority:(PSHGraph.Filter filter)
+		~widening_start:(!Option.widening_start)
+		~widening_descend:(!Option.widening_descend)
+		~depth:(!Option.iteration_depth)
 		graph sstart)
 	else
 	  Fixpoint.analysis_std
@@ -403,6 +403,9 @@ module Forward = struct
 	    (Fixpoint.make_strategy_default
 	      ~vertex_dummy:Equation.vertex_dummy
 	      ~hedge_dummy:Equation.hedge_dummy
+	      ~widening_start:(!Option.widening_start)
+	      ~widening_descend:(!Option.widening_descend)
+	      ~depth:(!Option.iteration_depth)
 	      graph sstart)
       in
       fp
@@ -625,7 +628,11 @@ module Backward = struct
 	end
       end
       in
-      let fpmanager = make_fpmanager ~fmt graph ~output apply abstract_init manager ~debug in
+      let fpmanager =
+	make_fpmanager ~fmt ~output ~debug ~graph
+	  ~man:manager
+	  ~abstract_init ~apply
+      in
       let fp =
 	if !Option.iteration_guided then
 	  Fixpoint.analysis_guided
@@ -635,6 +642,9 @@ module Backward = struct
 		~vertex_dummy:Equation.vertex_dummy
 		~hedge_dummy:Equation.hedge_dummy
 		~priority:(PSHGraph.Filter filter)
+		~widening_start:(!Option.widening_start)
+		~widening_descend:(!Option.widening_descend)
+		~depth:(!Option.iteration_depth)
 		graph !sstart)
 	else
 	  Fixpoint.analysis_std
@@ -642,6 +652,9 @@ module Backward = struct
 	    (Fixpoint.make_strategy_default
 	      ~vertex_dummy:Equation.vertex_dummy
 	      ~hedge_dummy:Equation.hedge_dummy
+	      ~widening_start:(!Option.widening_start)
+	      ~widening_descend:(!Option.widening_descend)
+	      ~depth:(!Option.iteration_depth)
 	      graph !sstart)
       in
       fp
@@ -707,4 +720,3 @@ let print_output prog fmt fp =
 	  (!Option.displaytags).Option.postcolor
       end)
     prog
-

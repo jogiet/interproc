@@ -18,6 +18,7 @@ val print :
   (** Printing function, parametrized by a printing function for conjunctions *)
 
 val map : ('conda -> 'condb) -> 'conda t -> 'condb t
+val map2 : ('conda -> 'condb -> 'condc) -> 'conda t -> 'condb t -> 'condc t
 val fold2 : ('acc -> 'conda -> 'condb -> 'acc) -> 'acc -> 'conda t -> 'condb t -> 'acc
   (** Map-iterator, based on a conjunction transformer *)
 
@@ -30,14 +31,14 @@ val fold2 : ('acc -> 'conda -> 'condb -> 'acc) -> 'acc -> 'conda t -> 'condb t -
 val make_cst : bool -> 'conj t
 val make_conjunction : 'conj -> 'conj t
 val make_or : 'conj t -> 'conj t -> 'conj t
-val make_and : 
-  cand:('conj -> 'conj -> 'conj t) -> 
+val make_and :
+  cand:('conj -> 'conj -> 'conj t) ->
   'conj t -> 'conj t -> 'conj t
   (** Conjunction, parametrized by conjunction function
       on conjunctions *)
 val make_not :
-  cand:('conj -> 'conj -> 'conj t) -> 
-  cnegate:('conj -> 'conj t) -> 
+  cand:('conj -> 'conj -> 'conj t) ->
+  cnegate:('conj -> 'conj t) ->
   'conj t -> 'conj t
   (** Negation, parametrized by conjunction and negation functions
       on conjunctions *)

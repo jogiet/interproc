@@ -25,12 +25,35 @@ MLMODULES = spl_syn pSpl_syn spl_yacc spl_lex boolexpr equation syn2equation opt
 # Global rules
 all: interproc.byte interproc.opt interprocf.opt
 
+byte: interproc.byte
+opt: interproc.opt
 interproc.byte: $(MLMODULES:%=%.cmo) interproc.cmo 
 	$(OCAMLFIND) ocamlc $(OCAMLFLAGS) $(OCAMLINC) -package $(REQ_PKG) -linkpkg \
 	-o $@ $^
 interproc.opt: $(MLMODULES:%=%.cmx) interproc.cmx
-	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -package $(REQ_PKG) -linkpkg \
+	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -predicates debug -package $(REQ_PKG) -linkpkg \
 	-o $@ $^
+
+interproc.d.opt: $(MLMODULES:%=%.cmx) interproc.cmx
+	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -noautolink \
+-ccopt -L$(HOME)/pkg/ocamlfind-site-lib/apron \
+-ccopt -L$(HOME)/pkg/ocamlfind-site-lib/gmp \
+-ccopt -L$(APRON_INSTALL)/lib \
+-ccopt -L$(GMP_INSTALL)/lib \
+-ccopt -L$(MPFR_INSTALL)/lib \
+-ccopt -L$(PPL_INSTALL)/lib \
+-ccopt -L$(CAMLIDL_INSTALL)/lib/ocaml \
+-cclib -lpolkaGrid_caml_debug -cclib -lap_pkgrid_debug \
+-cclib -lap_ppl_caml_debug -cclib -lap_ppl_debug -cclib -lppl \
+-cclib -lt1pMPQ_caml_debug -cclib -lt1pMPQ_debug \
+-cclib -lpolkaMPQ_caml_debug -cclib -lpolkaMPQ_debug \
+-cclib -loctMPQ_caml_debug -cclib -loctMPQ_debug \
+-cclib -lboxMPQ_caml_debug -cclib -lboxMPQ_debug \
+-cclib -lapron_caml_debug -cclib -lapron_debug -cclib -litv_debug \
+-cclib -lstdc++ -cclib -lgmpxx \
+-cclib -lgmp_caml -cclib -lgmp -cclib -lmpfr \
+-cclib -lunix -cclib -lbigarray -cclib -lcamlidl \
+-verbose -package $(REQ_PKG) -linkpkg -o $@ $^
 
 interprocf.opt: $(MLMODULES:%=%.cmx) interproc.cmx
 	$(OCAMLFIND) ocamlopt $(OCAMLOPTFLAGS) $(OCAMLINC) -package $(REQ_PKGf) -linkpkg \

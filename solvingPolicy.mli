@@ -11,10 +11,9 @@ type 'a policy = 'a Apron.Policy.t Boolexpr.t
 module Forward : sig
   val apply :
     Equation.graph ->
-    policy:(Equation.hedge, 'a policy) Hashhe.t ->
-    mode:Apron.Policy.mode ->
     output:(Equation.vertex, int, 'a Apron.Abstract1.t, unit)
-      Fixpoint.output option ->
+      Fixpoint.output option ref ->
+    policy:(Equation.hedge, 'a policy) Hashhe.t ref ->
     'a Apron.Policy.man ->
     Equation.hedge ->
     'a Apron.Abstract1.t array -> unit * 'a Apron.Abstract1.t
@@ -33,10 +32,9 @@ end
 module Backward : sig
   val apply :
     Equation.graph ->
-    policy:(Equation.hedge, 'a policy) Hashhe.t ->
-    mode:Apron.Policy.mode ->
     output:(Equation.vertex, int, 'a Apron.Abstract1.t, unit)
-      Fixpoint.output option ->
+      Fixpoint.output option ref ->
+    policy:(Equation.hedge, 'a policy) Hashhe.t ref ->
     'a Apron.Policy.man ->
     Equation.hedge ->
     'a Apron.Abstract1.t array -> unit * 'a Apron.Abstract1.t
