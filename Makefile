@@ -9,10 +9,17 @@ PREFIX = $(INTERPROC_PREFIX)
 # For the WEB version
 OCAMLHTML_INSTALL = $(HOME)/pkg/ocamlhtml/$(ARCH)
 
+ifneq ($(HAS_PPL),)
+REQ_PKG = "camllib fixpoint gmp apron \
+apron.boxMPQ apron.octMPQ apron.polkaMPQ apron.t1pMPQ"
+REQ_PKGf = "camllib fixpoint gmp apron \
+apron.boxD apron.octD apron.polkaMPQ apron.t1pD"
+else
 REQ_PKG = "camllib fixpoint gmp apron \
 apron.boxMPQ apron.octMPQ apron.polkaMPQ apron.t1pMPQ apron.ppl apron.polkaGrid"
 REQ_PKGf = "camllib fixpoint gmp apron \
 apron.boxD apron.octD apron.polkaMPQ apron.t1pD apron.ppl apron.polkaGrid"
+endif
 
 OCAMLINC = -I $(OCAMLHTML_INSTALL)/lib
 
