@@ -23,6 +23,10 @@ CAML_PREFIX =  $(dir $(shell which ocamlc))/..
 #
 CAMLIDL_PREFIX = $(dir $(shell which camlidl))/..
 
+# Where to find PPL ($(PPL_PREFIX)/include, $(PPL_PREFIX)/lib
+#
+PPL_PREFIX = /tmp
+
 ######################################################################
 # Tools and Flags
 ######################################################################

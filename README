@@ -19,6 +19,10 @@ To configure
 - copy Makefile.config.model into Makefile.config
 - set properly the flags (mainly directories).
 
+- BY DEFAULT, domains requiring that APRON to be compiled with PPL are
+  *DESACTIVATED*. If you want to activate it, uncomment the last lines
+  of frontend.ml
+
 To compile the library:
 =======================
 

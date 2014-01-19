@@ -222,6 +222,7 @@ let analyze_and_display
   | Taylor1plus ->
       compute_and_display fmt prog fgraph bgraph
 	(T1p.manager_alloc ())
+(*
   | PplPolyLoose ->
       compute_and_display fmt prog fgraph bgraph
 	(Ppl.manager_alloc_loose ())
@@ -236,4 +237,7 @@ let analyze_and_display
       let man2 = Ppl.manager_alloc_grid () in
       compute_and_display fmt prog fgraph bgraph
 	(PolkaGrid.manager_alloc man1 man2)
+*)
+  | _->
+    failwith "You probably selected a domain needing the PPL library. Uncomment the last lines of the INTERPROC file frontend.ml and recompile INTERPROC"
   end
