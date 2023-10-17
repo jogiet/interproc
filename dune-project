@@ -1,18 +1,18 @@
 (lang dune 3.7)
 
 (name Interproc)
-(version 28642a9-dirty)
+(version dev)
 
 (using menhir 2.1)
 
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github jogiet/interproc))
 
 (authors "Bertrand Jeannet")
 
-(maintainers "Maintainer Name")
+(maintainers "Josselin Giet")
 
 (license LGPL)
 
@@ -24,6 +24,6 @@
  (description "Interproc is an interprocedural analyzer for a small imperative language with (recursive) procedure calls. It infers invariants on the numerical variables of analyzed program.")
  (depends ocaml dune apron fixpoint camllib)
  (tags
-  (topics "to describe" your project)))
+  (Abstract interpretation interproceduralm analysis)))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
