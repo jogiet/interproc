@@ -3,7 +3,7 @@
 (* This file is part of the Interproc analyzer, released under GPL license.
    Please read the COPYING file packaged in the distribution.
 
-   Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
+   Copyright (C) Mathias Argoud, Gaï¿½l Lalire, Bertrand Jeannet 2007.
 *)
 
 open Format
@@ -76,9 +76,9 @@ let make_fpmanager
     Fixpoint.print_hedge=pp_print_int;
     Fixpoint.print_abstract = Apron.Abstract1.print;
     Fixpoint.print_arc = begin fun fmt () -> pp_print_string fmt "()" end;
-    (* Fixpoint Options *)
+    (* Fixpoint Optionss *)
     Fixpoint.accumulate = false;
-    (* Printing Options *)
+    (* Printing Optionss *)
     Fixpoint.print_fmt = fmt;
     Fixpoint.print_analysis=debug>=1;
     Fixpoint.print_component=debug>=2;
@@ -86,8 +86,8 @@ let make_fpmanager
     Fixpoint.print_state=debug>=4;
     Fixpoint.print_postpre=debug>=5;
     Fixpoint.print_workingsets=debug>=6;
-    (* DOT Options *)
-    Fixpoint.dot_fmt = !Option.dot_fmt;
+    (* DOT Optionss *)
+    Fixpoint.dot_fmt = !Options.dot_fmt;
     Fixpoint.dot_vertex=PSpl_syn.print_point;
     Fixpoint.dot_hedge=pp_print_int;
     Fixpoint.dot_attrvertex=PSpl_syn.print_point;
@@ -385,7 +385,7 @@ module Forward = struct
 	  ~abstract_init ~apply
       in
       let fp =
-	if !Option.iteration_guided then
+	if !Options.iteration_guided then
 	  Fixpoint.analysis_guided
 	    fpmanager graph sstart
 	    (fun filter  ->
@@ -393,9 +393,9 @@ module Forward = struct
 		~vertex_dummy:Equation.vertex_dummy
 		~hedge_dummy:Equation.hedge_dummy
 		~priority:(PSHGraph.Filter filter)
-		~widening_start:(!Option.widening_start)
-		~widening_descend:(!Option.widening_descend)
-		~depth:(!Option.iteration_depth)
+		~widening_start:(!Options.widening_start)
+		~widening_descend:(!Options.widening_descend)
+		~depth:(!Options.iteration_depth)
 		graph sstart)
 	else
 	  Fixpoint.analysis_std
@@ -403,9 +403,9 @@ module Forward = struct
 	    (Fixpoint.make_strategy_default
 	      ~vertex_dummy:Equation.vertex_dummy
 	      ~hedge_dummy:Equation.hedge_dummy
-	      ~widening_start:(!Option.widening_start)
-	      ~widening_descend:(!Option.widening_descend)
-	      ~depth:(!Option.iteration_depth)
+	      ~widening_start:(!Options.widening_start)
+	      ~widening_descend:(!Options.widening_descend)
+	      ~depth:(!Options.iteration_depth)
 	      graph sstart)
       in
       fp
@@ -634,7 +634,7 @@ module Backward = struct
 	  ~abstract_init ~apply
       in
       let fp =
-	if !Option.iteration_guided then
+	if !Options.iteration_guided then
 	  Fixpoint.analysis_guided
 	    fpmanager graph !sstart
 	    (fun filter  ->
@@ -642,9 +642,9 @@ module Backward = struct
 		~vertex_dummy:Equation.vertex_dummy
 		~hedge_dummy:Equation.hedge_dummy
 		~priority:(PSHGraph.Filter filter)
-		~widening_start:(!Option.widening_start)
-		~widening_descend:(!Option.widening_descend)
-		~depth:(!Option.iteration_depth)
+		~widening_start:(!Options.widening_start)
+		~widening_descend:(!Options.widening_descend)
+		~depth:(!Options.iteration_depth)
 		graph !sstart)
 	else
 	  Fixpoint.analysis_std
@@ -652,9 +652,9 @@ module Backward = struct
 	    (Fixpoint.make_strategy_default
 	      ~vertex_dummy:Equation.vertex_dummy
 	      ~hedge_dummy:Equation.hedge_dummy
-	      ~widening_start:(!Option.widening_start)
-	      ~widening_descend:(!Option.widening_descend)
-	      ~depth:(!Option.iteration_depth)
+	      ~widening_start:(!Options.widening_start)
+	      ~widening_descend:(!Options.widening_descend)
+	      ~depth:(!Options.iteration_depth)
 	      graph !sstart)
       in
       fp
@@ -701,7 +701,7 @@ let print_apron_box fmt box =
   fprintf fmt "@]|]"
 
 let print_abstract1 fmt abs =
-  if !Option.print_box then
+  if !Options.print_box then
       let man = Apron.Abstract1.manager abs in
       let box = Apron.Abstract1.to_box man abs in
       print_apron_box fmt box;
@@ -714,9 +714,9 @@ let print_output prog fmt fp =
       begin fun fmt (point:Spl_syn.point) ->
 	let abs = PSHGraph.attrvertex fp point in
 	fprintf fmt "@[<hov>%s%a@ %a%s@]"
-	  (!Option.displaytags).Option.precolorR
+	  (!Options.displaytags).Options.precolorR
 	  PSpl_syn.print_point point
 	  print_abstract1 abs
-	  (!Option.displaytags).Option.postcolor
+	  (!Options.displaytags).Options.postcolor
       end)
     prog

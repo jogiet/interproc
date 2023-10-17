@@ -3,7 +3,7 @@
 (* This file is part of the Interproc analyzer, released under GPL license.
    Please read the COPYING file packaged in the distribution.
 
-   Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
+   Copyright (C) Mathias Argoud, Gaï¿½l Lalire, Bertrand Jeannet 2007.
 *)
 
 open Format
@@ -270,7 +270,7 @@ module Forward = struct
       let loop = ref true in
       while !loop do
 	let fp =
-	  if !Option.iteration_guided then
+	  if !Options.iteration_guided then
 	    Fixpoint.analysis_guided
 	      fpmanager graph sstart
 	      (fun filter  ->
@@ -289,7 +289,7 @@ module Forward = struct
 	in
 	result := Some fp;
 	(* Display *)
-	if !Option.debug>0 then begin
+	if !Options.debug>0 then begin
 	  printf "policy=%a" (hash_policy_print pmanager) !policy;
 	  Solving.print_output prog fmt fp;
 	end;
@@ -433,7 +433,7 @@ module Backward = struct
       let loop = ref true in
       while !loop do
 	let fp =
-	  if !Option.iteration_guided then
+	  if !Options.iteration_guided then
 	    Fixpoint.analysis_guided
 	      fpmanager graph !sstart
 	      (fun filter  ->
@@ -452,7 +452,7 @@ module Backward = struct
 	in
 	result := Some fp;
 	(* Display *)
-	if !Option.debug >0 then begin
+	if !Options.debug >0 then begin
 	  printf "policy=%a" (hash_policy_print pmanager) !policy;
 	  Solving.print_output prog fmt fp;
 	end;

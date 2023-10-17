@@ -3,11 +3,11 @@
 (* This file is part of the Interproc analyzer, released under GPL license.
    Please read the COPYING file packaged in the distribution.
 
-   Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
+   Copyright (C) Mathias Argoud, Gaï¿½l Lalire, Bertrand Jeannet 2007.
 *)
 
 open Format
-open Option
+open Options
 
 (*  ********************************************************************** *)
 (** {2 Parsing input file} *)
@@ -63,7 +63,7 @@ let build_graphs
   let (fgraph:Equation.graph) = Syn2equation.Forward.make prog in
   if !debug>5 then
     fprintf fmt "%sForward equation graph%s@   @[<v>%a@]@."
-      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
+      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
       (PSHGraph.print
 	PSpl_syn.print_point
 	pp_print_int
@@ -76,7 +76,7 @@ let build_graphs
   let (bgraph:Equation.graph) = Syn2equation.Backward.make prog in
   if !debug>5 then
     fprintf fmt "%sBackward equation graph%s@   @[<v>%a@]@."
-      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
+      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
       (PSHGraph.print
 	PSpl_syn.print_point
 	pp_print_int
@@ -113,7 +113,7 @@ let compute_and_display
 	      Solving.Forward.compute ~fmt fgraph ~output:(!previous) manager ~debug:!debug
 	    in
 	    fprintf fmt "%sAnnotated program after forward analysis%s@ "
-	      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
+	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
 	    ;
 	    fp
 	| Backward ->
@@ -121,7 +121,7 @@ let compute_and_display
 	      Solving.Backward.compute ~fmt prog bgraph ~output:(!previous) manager ~debug:!debug
 	    in
 	    fprintf fmt "%sAnnotated program after backward analysis%s@ "
-	      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
+	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
 	    ;
 	    fp
 	end
@@ -160,7 +160,7 @@ let compute_and_display_policy
 	      SolvingPolicy.Forward.compute ~fmt prog fgraph ~output:(!previous) pmanager ~debug:!debug
 	    in
 	    fprintf fmt "%sAnnotated program after forward analysis%s@ "
-	      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
+	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
 	    ;
 	    fp
 	| Backward ->
@@ -168,7 +168,7 @@ let compute_and_display_policy
 	      SolvingPolicy.Backward.compute ~fmt prog bgraph ~output:(!previous) pmanager ~debug:!debug
 	    in
 	    fprintf fmt "%sAnnotated program after backward analysis%s@ "
-	      (!Option.displaytags).precolorB (!Option.displaytags).postcolor
+	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
 	    ;
 	    fp
 	end
@@ -219,9 +219,9 @@ let analyze_and_display
   | PolkaEq ->
       compute_and_display fmt prog fgraph bgraph
 	(Polka.manager_alloc_equalities ())
-  | Taylor1plus ->
+  (* | Taylor1plus ->
       compute_and_display fmt prog fgraph bgraph
-	(T1p.manager_alloc ())
+	(T1p.manager_alloc ()) *)
 (*
   | PplPolyLoose ->
       compute_and_display fmt prog fgraph bgraph
