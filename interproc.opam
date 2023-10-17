@@ -7,7 +7,7 @@ description:
 maintainer: ["Josselin Giet"]
 authors: ["Bertrand Jeannet"]
 license: "LGPL"
-tags: ["Abstract" "interpretation" "interproceduralm" "analysis"]
+tags: ["Abstract interpretation" "interproceduralm analysis"]
 homepage: "https://github.com/jogiet/interproc"
 doc:
   "https://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/interproc/index.html"
