@@ -56,11 +56,11 @@ module Forward : sig
     Equation.hedge -> 'a Apron.Abstract1.t array ->
     unit * 'a Apron.Abstract1.t
       (** Applying a transfer function, given
-	  - the equation graph ;
-	  - optionally, the result of a previous, backward analysis;
-	  - an APRON manager;
-	  - an hyperedge identifier;
-	  - an array of input abstract values
+          - the equation graph ;
+          - optionally, the result of a previous, backward analysis;
+          - an APRON manager;
+          - an hyperedge identifier;
+          - an array of input abstract values
       *)
 
   val compute :
@@ -71,10 +71,10 @@ module Forward : sig
     debug:int ->
     (Spl_syn.point, int, 'a Apron.Abstract1.t, unit) Fixpoint.output
       (** Compute (post)fixpoint, given
-	  - the equation graph;
-	  - optionally, the result of a previous, backward analysis
-	  - an APRON manager;
-	  - a debug level
+          - the equation graph;
+          - optionally, the result of a previous, backward analysis
+          - an APRON manager;
+          - a debug level
       *)
 end
 

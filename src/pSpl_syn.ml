@@ -89,22 +89,22 @@ let print_bexpr fmt bexpr =
     | BRANDOM -> pp_print_string fmt "brandom"
     | CONS(cons) -> print_cons fmt cons
     | AND(e1,e2) ->
-	if level <= 1 then
-	  fprintf fmt "%a and %a"
-	    (print 1) e1 (print 1) e2
-	else
-	  fprintf fmt "(%a and %a)"
-	    (print 1) e1 (print 1) e2
+        if level <= 1 then
+          fprintf fmt "%a and %a"
+            (print 1) e1 (print 1) e2
+        else
+          fprintf fmt "(%a and %a)"
+            (print 1) e1 (print 1) e2
     | OR(e1,e2) ->
-	if level <= 0 then
-	  fprintf fmt "%a or %a"
-	    (print 0) e1 (print 0) e2
-	else
-	  fprintf fmt "(%a or %a)"
-	    (print 0) e1 (print 0) e2
+        if level <= 0 then
+          fprintf fmt "%a or %a"
+            (print 0) e1 (print 0) e2
+        else
+          fprintf fmt "(%a or %a)"
+            (print 0) e1 (print 0) e2
     | NOT(e) ->
-	  fprintf fmt "not %a"
-	    (print 2) e
+          fprintf fmt "not %a"
+            (print 2) e
   in
   print 0 fmt bexpr
 

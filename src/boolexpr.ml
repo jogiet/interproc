@@ -21,7 +21,7 @@ let print print_elt fmt = function
   | DISJ([]) -> pp_print_string fmt "false"
   | DISJ(l) ->
       Print.list ~first:"@[" ~sep:" ||@ " ~last:"@]"
-	print_elt fmt l
+        print_elt fmt l
 
 (** Map-iterator, based on an atomic condition transformer *)
 let map (f:'a -> 'b) (expr:'a t) : 'b t =
@@ -56,22 +56,22 @@ let make_and ~cand e1 e2 = match (e1,e2) with
   | (TRUE,x) | (x,TRUE) -> x
   | (DISJ(l1), DISJ(l2)) ->
       List.fold_left
-	(begin fun res conj1 ->
-	  List.fold_left
-	    (begin fun res conj2 ->
-	      let conj = cand conj1 conj2 in
-	      make_or res conj
-	    end)
-	    res l2
-	end)
-	(DISJ []) l1
+        (begin fun res conj1 ->
+          List.fold_left
+            (begin fun res conj2 ->
+              let conj = cand conj1 conj2 in
+              make_or res conj
+            end)
+            res l2
+        end)
+        (DISJ []) l1
 
 let rec make_not ~cand ~cnegate (expr:'a t) : 'a t =
   match expr with
   | TRUE -> DISJ([])
   | DISJ(l) ->
       List.fold_left
-	(begin fun res conjunction ->
-	  make_and cand res (cnegate conjunction)
-	end)
-	TRUE l
+        (begin fun res conjunction ->
+          make_and cand res (cnegate conjunction)
+        end)
+        TRUE l

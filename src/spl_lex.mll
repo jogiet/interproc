@@ -110,21 +110,21 @@ rule token = parse
 
     (* comments: nested /* */, and // are allowed *)
     | "/*" { Spl_syn.start_of_comment := Lexing.lexeme_start_p lexbuf;
-	     comment lexbuf ;
-	     token lexbuf }
+             comment lexbuf ;
+             token lexbuf }
     | "//"([^'\n']*)     { token lexbuf }
 
     (* numbers *)
     | (['0'-'9'])+ ('/'['0'-'9']+)?
-	{
-	  let str = Lexing.lexeme lexbuf in
-	  TK_MPQF(Mpqf.of_string str)
-	}
+        {
+          let str = Lexing.lexeme lexbuf in
+          TK_MPQF(Mpqf.of_string str)
+        }
     | ['0'-'9']* ('.' ['0'-'9']*) (['e' 'E'] ['+' '-']? ['0'-'9']+)?
-	{
-	  let str = Lexing.lexeme lexbuf in
-	  TK_FLOAT(float_of_string str)
-	}
+        {
+          let str = Lexing.lexeme lexbuf in
+          TK_FLOAT(float_of_string str)
+        }
 
     (* keywords *)
     | "do"     { TK_DO (point lexbuf 0) }
@@ -146,26 +146,26 @@ rule token = parse
 
     (* Arithmetic operations *)
     | "+"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_ADD(attributes_of_string 1 lexbuf) }
+        { TK_ADD(attributes_of_string 1 lexbuf) }
     | "-"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_SUB(attributes_of_string 1 lexbuf) }
+        { TK_SUB(attributes_of_string 1 lexbuf) }
     | "*"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_MUL(attributes_of_string 1 lexbuf) }
+        { TK_MUL(attributes_of_string 1 lexbuf) }
     | "/"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_DIV(attributes_of_string 1 lexbuf) }
+        { TK_DIV(attributes_of_string 1 lexbuf) }
     | "%"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_MODULO(attributes_of_string 1 lexbuf) }
+        { TK_MODULO(attributes_of_string 1 lexbuf) }
     | "cast"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_CAST(attributes_of_string 4 lexbuf) }
+        { TK_CAST(attributes_of_string 4 lexbuf) }
     | "sqrt"(('_'['i''f''d''l''q'])(','("n"|"0"|"+oo"|"-oo"|"?"))?)?
-	{ TK_SQRT(attributes_of_string 4 lexbuf) }
+        { TK_SQRT(attributes_of_string 4 lexbuf) }
 
     (* identifiers *)
     | ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
       {
-	let id = Lexing.lexeme lexbuf in
-	try Hashtbl.find keywords id
-	with Not_found -> TK_ID id }
+        let id = Lexing.lexeme lexbuf in
+        try Hashtbl.find keywords id
+        with Not_found -> TK_ID id }
 
     (* end of file *)
     | eof         { TK_EOF }

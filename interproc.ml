@@ -29,12 +29,12 @@ let main () =
     printf "%sProgram with its control points:%s@.%a@."
       (!Options.displaytags).precolorB (!Options.displaytags).postcolor
       (PSpl_syn.print_program
-	(begin fun fmt point ->
-	  fprintf fmt "%s%a%s"
-	  (!Options.displaytags).precolorR
-	  PSpl_syn.print_point point
-	  (!Options.displaytags).postcolor
-	end))
+        (begin fun fmt point ->
+          fprintf fmt "%s%a%s"
+          (!Options.displaytags).precolorR
+          PSpl_syn.print_point point
+          (!Options.displaytags).postcolor
+        end))
       prog
   ;
 

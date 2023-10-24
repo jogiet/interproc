@@ -158,11 +158,11 @@ procedure:
   TK_PROC TK_ID TK_LPAR declarations TK_RPAR TK_RETURNS TK_LPAR declarations TK_RPAR vardeclarations TK_BEGIN instr_seq TK_END
     {
       {
-	pname = $2;
-	pinput = $4;
-	poutput = $8;
-	plocal = $10;
-	pcode = { bpoint = $11; instrs = $12 }
+        pname = $2;
+        pinput = $4;
+        poutput = $8;
+        plocal = $10;
+        pcode = { bpoint = $11; instrs = $12 }
       }
     }
 

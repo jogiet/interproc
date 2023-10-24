@@ -81,7 +81,7 @@ and instr = {
 (** Sequence of instructions *)
 and block = {
   mutable bpoint : point; (** label preceding the first instruction of the
-			     sequence *)
+                             sequence *)
   instrs : instr list;    (** Labelled instruction list *)
 }
 
@@ -122,19 +122,19 @@ let rec iter_instr (f:point * instr -> unit) (block:block) : unit
   ignore begin
     List.fold_left
       (begin fun point instr ->
-	f (point,instr);
-	begin match instr.instruction with
-	| SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ ->
-	    ()
-	| IF(bexpr,block) ->
-	    iter_instr f block;
-	| IFELSE(bexpr,block1,block2) ->
-	    iter_instr f block1;
-	    iter_instr f block2;
-	| LOOP(bexpr,block) ->
-	    iter_instr f block;
-	end;
-	instr.ipoint
+        f (point,instr);
+        begin match instr.instruction with
+        | SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ ->
+            ()
+        | IF(bexpr,block) ->
+            iter_instr f block;
+        | IFELSE(bexpr,block1,block2) ->
+            iter_instr f block1;
+            iter_instr f block2;
+        | LOOP(bexpr,block) ->
+            iter_instr f block;
+        end;
+        instr.ipoint
       end)
       block.bpoint
       block.instrs
@@ -153,14 +153,14 @@ let rec iter_eltinstr (f:point * instr -> unit) (block:block) : unit
     (begin fun point instr ->
       begin match instr.instruction with
       | SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ ->
-	  f (point,instr);
+          f (point,instr);
       | IF(bexpr,block) ->
-	  iter_eltinstr f block;
+          iter_eltinstr f block;
       | IFELSE(bexpr,block1,block2) ->
-	  iter_eltinstr f block1;
-	  iter_eltinstr f block2;
+          iter_eltinstr f block1;
+          iter_eltinstr f block2;
       | LOOP(bexpr,block) ->
-	  iter_eltinstr f block;
+          iter_eltinstr f block;
       end;
       instr.ipoint
     end)

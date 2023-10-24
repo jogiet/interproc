@@ -81,7 +81,7 @@ and instr = {
 (** Sequence of instructions *)
 and block = {
   mutable bpoint : point; (** label preceding the first instruction of the
-			     sequence *)
+                             sequence *)
   instrs : instr list;    (** Labelled instruction list *)
 }
 

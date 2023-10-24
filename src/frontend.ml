@@ -24,28 +24,28 @@ let parse_lexbuf
       Spl_yacc.program Spl_lex.token lexbuf
     with
     | Parsing.Parse_error ->
-	let startp = Lexing.lexeme_start_p lexbuf
-	and endp = Lexing.lexeme_end_p lexbuf
-	in
-	Format.fprintf fmt
-	  "Syntaxical error: %s, line %i, characters %i-%i: '%s'.@."
-	  startp.Lexing.pos_fname
-	  startp.Lexing.pos_lnum
-	  (startp.Lexing.pos_cnum - startp.Lexing.pos_bol)
-	  (endp.Lexing.pos_cnum - endp.Lexing.pos_bol)
-	  (Lexing.lexeme lexbuf);
-	raise Exit;
+        let startp = Lexing.lexeme_start_p lexbuf
+        and endp = Lexing.lexeme_end_p lexbuf
+        in
+        Format.fprintf fmt
+          "Syntaxical error: %s, line %i, characters %i-%i: '%s'.@."
+          startp.Lexing.pos_fname
+          startp.Lexing.pos_lnum
+          (startp.Lexing.pos_cnum - startp.Lexing.pos_bol)
+          (endp.Lexing.pos_cnum - endp.Lexing.pos_bol)
+          (Lexing.lexeme lexbuf);
+        raise Exit;
     | Spl_syn.Error ->
-	let startp = Lexing.lexeme_start_p lexbuf
-	and endp = Lexing.lexeme_end_p lexbuf
-	in
-	Format.fprintf fmt "Lexical error: %s, line %i, character %i-%i: '%s'.@."
-	  startp.Lexing.pos_fname
-	  startp.Lexing.pos_lnum
-	  (startp.Lexing.pos_cnum - startp.Lexing.pos_bol)
-	  (endp.Lexing.pos_cnum - endp.Lexing.pos_bol)
-	  (Lexing.lexeme lexbuf);
-	raise Exit
+        let startp = Lexing.lexeme_start_p lexbuf
+        and endp = Lexing.lexeme_end_p lexbuf
+        in
+        Format.fprintf fmt "Lexical error: %s, line %i, character %i-%i: '%s'.@."
+          startp.Lexing.pos_fname
+          startp.Lexing.pos_lnum
+          (startp.Lexing.pos_cnum - startp.Lexing.pos_bol)
+          (endp.Lexing.pos_cnum - endp.Lexing.pos_bol)
+          (Lexing.lexeme lexbuf);
+        raise Exit
   in
   prog
 
@@ -65,11 +65,11 @@ let build_graphs
     fprintf fmt "%sForward equation graph%s@   @[<v>%a@]@."
       (!Options.displaytags).precolorB (!Options.displaytags).postcolor
       (PSHGraph.print
-	PSpl_syn.print_point
-	pp_print_int
-	(fun fmt () -> pp_print_string fmt "()")
-	Equation.print_transfer
-	Equation.print_info)
+        PSpl_syn.print_point
+        pp_print_int
+        (fun fmt () -> pp_print_string fmt "()")
+        Equation.print_transfer
+        Equation.print_info)
       fgraph
   ;
   (* Converting prog into a backward equation system *)
@@ -78,11 +78,11 @@ let build_graphs
     fprintf fmt "%sBackward equation graph%s@   @[<v>%a@]@."
       (!Options.displaytags).precolorB (!Options.displaytags).postcolor
       (PSHGraph.print
-	PSpl_syn.print_point
-	pp_print_int
-	(fun fmt () -> pp_print_string fmt "()")
-	Equation.print_transfer
-	Equation.print_info)
+        PSpl_syn.print_point
+        pp_print_int
+        (fun fmt () -> pp_print_string fmt "()")
+        Equation.print_transfer
+        Equation.print_info)
       bgraph
   ;
   (fgraph,bgraph)
@@ -107,24 +107,24 @@ let compute_and_display
     (begin fun t ->
       (* Computation *)
       let fp =
-	begin match t with
-	| Forward ->
-	    let fp =
-	      Solving.Forward.compute ~fmt fgraph ~output:(!previous) manager ~debug:!debug
-	    in
-	    fprintf fmt "%sAnnotated program after forward analysis%s@ "
-	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
-	    ;
-	    fp
-	| Backward ->
-	    let fp =
-	      Solving.Backward.compute ~fmt prog bgraph ~output:(!previous) manager ~debug:!debug
-	    in
-	    fprintf fmt "%sAnnotated program after backward analysis%s@ "
-	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
-	    ;
-	    fp
-	end
+        begin match t with
+        | Forward ->
+            let fp =
+              Solving.Forward.compute ~fmt fgraph ~output:(!previous) manager ~debug:!debug
+            in
+            fprintf fmt "%sAnnotated program after forward analysis%s@ "
+              (!Options.displaytags).precolorB (!Options.displaytags).postcolor
+            ;
+            fp
+        | Backward ->
+            let fp =
+              Solving.Backward.compute ~fmt prog bgraph ~output:(!previous) manager ~debug:!debug
+            in
+            fprintf fmt "%sAnnotated program after backward analysis%s@ "
+              (!Options.displaytags).precolorB (!Options.displaytags).postcolor
+            ;
+            fp
+        end
       in
       (* Display *)
       Solving.print_output prog fmt fp;
@@ -154,24 +154,24 @@ let compute_and_display_policy
     (begin fun t ->
       (* Computation *)
       let fp =
-	begin match t with
-	| Forward ->
-	    let fp =
-	      SolvingPolicy.Forward.compute ~fmt prog fgraph ~output:(!previous) pmanager ~debug:!debug
-	    in
-	    fprintf fmt "%sAnnotated program after forward analysis%s@ "
-	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
-	    ;
-	    fp
-	| Backward ->
-	    let fp =
-	      SolvingPolicy.Backward.compute ~fmt prog bgraph ~output:(!previous) pmanager ~debug:!debug
-	    in
-	    fprintf fmt "%sAnnotated program after backward analysis%s@ "
-	      (!Options.displaytags).precolorB (!Options.displaytags).postcolor
-	    ;
-	    fp
-	end
+        begin match t with
+        | Forward ->
+            let fp =
+              SolvingPolicy.Forward.compute ~fmt prog fgraph ~output:(!previous) pmanager ~debug:!debug
+            in
+            fprintf fmt "%sAnnotated program after forward analysis%s@ "
+              (!Options.displaytags).precolorB (!Options.displaytags).postcolor
+            ;
+            fp
+        | Backward ->
+            let fp =
+              SolvingPolicy.Backward.compute ~fmt prog bgraph ~output:(!previous) pmanager ~debug:!debug
+            in
+            fprintf fmt "%sAnnotated program after backward analysis%s@ "
+              (!Options.displaytags).precolorB (!Options.displaytags).postcolor
+            ;
+            fp
+        end
       in
       (* Display *)
       Solving.print_output prog fmt fp;
@@ -192,51 +192,51 @@ let analyze_and_display
   begin match !domain with
   | Box ->
       compute_and_display fmt prog fgraph bgraph
-	(Box.manager_alloc ())
+        (Box.manager_alloc ())
   | BoxPolicy ->
       let man = Box.manager_alloc () in
       let funopt = Apron.Manager.get_funopt man Apron.Manager.Funid_meet_lincons_array in
       let funopt = { funopt with Apron.Manager.algorithm = 1 } in
       Apron.Manager.set_funopt man Apron.Manager.Funid_meet_lincons_array funopt;
       compute_and_display_policy fmt prog fgraph bgraph
-	(Box.policy_manager_alloc man)
+        (Box.policy_manager_alloc man)
   | Octagon ->
       compute_and_display fmt prog fgraph bgraph
-	(Oct.manager_alloc ())
+        (Oct.manager_alloc ())
   | PolkaLoose ->
       compute_and_display fmt prog fgraph bgraph
-	(let man = Polka.manager_alloc_loose () in
+        (let man = Polka.manager_alloc_loose () in
 (*
   let wideningopt = Apron.Manager.get_funopt man Apron.Manager.Funid_widening in
   let wideningopt = { wideningopt with Apron.Manager.algorithm = 1 } in
   Apron.Manager.set_funopt man Apron.Manager.Funid_widening wideningopt;
 *)
-	man
-	)
+        man
+        )
   | PolkaStrict ->
       compute_and_display fmt prog fgraph bgraph
-	(Polka.manager_alloc_strict ())
+        (Polka.manager_alloc_strict ())
   | PolkaEq ->
       compute_and_display fmt prog fgraph bgraph
-	(Polka.manager_alloc_equalities ())
+        (Polka.manager_alloc_equalities ())
   (* | Taylor1plus ->
       compute_and_display fmt prog fgraph bgraph
-	(T1p.manager_alloc ()) *)
+        (T1p.manager_alloc ()) *)
 (*
   | PplPolyLoose ->
       compute_and_display fmt prog fgraph bgraph
-	(Ppl.manager_alloc_loose ())
+        (Ppl.manager_alloc_loose ())
   | PplPolyStrict ->
       compute_and_display fmt prog fgraph bgraph
-	(Ppl.manager_alloc_strict ())
+        (Ppl.manager_alloc_strict ())
   | PplGrid ->
       compute_and_display fmt prog fgraph bgraph
-	(Ppl.manager_alloc_grid ())
+        (Ppl.manager_alloc_grid ())
   | PolkaGrid ->
       let man1 = Polka.manager_alloc_loose () in
       let man2 = Ppl.manager_alloc_grid () in
       compute_and_display fmt prog fgraph bgraph
-	(PolkaGrid.manager_alloc man1 man2)
+        (PolkaGrid.manager_alloc man1 man2)
 *)
   | _->
     failwith "You probably selected a domain needing the PPL library. Uncomment the last lines of the INTERPROC file frontend.ml and recompile INTERPROC"
