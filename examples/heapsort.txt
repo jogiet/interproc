@@ -24,15 +24,15 @@ begin
     while (J<=R and continue>0) do
       if (J<=R-1) then
         if /* T[J]<T[j-1] */ brandom then
-	  J = J+1;
+          J = J+1;
         endif;
       endif;
       if /* K>=T[J] */ brandom then
-	continue=0;
+        continue=0;
       else
-	/* T[I]=T[J]; */
-	I = J;
-	J = 2*J;
+        /* T[I]=T[J]; */
+        I = J;
+        J = 2*J;
       endif;
     done;
     /* T[I] = K; */

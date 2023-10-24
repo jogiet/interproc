@@ -118,96 +118,96 @@ let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
   Arg.align
     [
       (
-	"-debug",
-	Arg.Set_int(debug),
-	"<int> : debug level, from 0 to 4 (default:0)"
+        "-debug",
+        Arg.Set_int(debug),
+        "<int> : debug level, from 0 to 4 (default:0)"
       );
       (
-	"-dot",
-	Arg.String(begin fun filename ->
-	  let dotfile = open_out filename in
-	  let dotfmt = Format.formatter_of_out_channel dotfile in
-	  dot_fmt := Some dotfmt;
-	end),
-	"<filename> : activate DOT output to the given file (linked to -debug option)");
+        "-dot",
+        Arg.String(begin fun filename ->
+          let dotfile = open_out filename in
+          let dotfmt = Format.formatter_of_out_channel dotfile in
+          dot_fmt := Some dotfmt;
+        end),
+        "<filename> : activate DOT output to the given file (linked to -debug option)");
       (
-	"-domain",
-	Arg.Symbol(
-	  lnamedomain,
-	  begin fun name -> domain := List.assoc name assocnamedomain end
-	),
-	" : abstract domain to use (default: polka)"
+        "-domain",
+        Arg.Symbol(
+          lnamedomain,
+          begin fun name -> domain := List.assoc name assocnamedomain end
+        ),
+        " : abstract domain to use (default: polka)"
       );
       (
-	"-depth",
-	Arg.Int(begin fun n ->
-	  if n<2 then
-	    raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-depth' expects an integer >= 2"))
-	  else
-	    iteration_depth := n
-	end),
-	"<int> : depth of recursive iterations (default 2, may only be more)"
+        "-depth",
+        Arg.Int(begin fun n ->
+          if n<2 then
+            raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-depth' expects an integer >= 2"))
+          else
+            iteration_depth := n
+        end),
+        "<int> : depth of recursive iterations (default 2, may only be more)"
       );
       (
-	"-guided",
-	Arg.Bool(begin fun b -> iteration_guided := b end),
-	"<bool> : if true, guided analysis of Gopand and Reps (default: false)"
+        "-guided",
+        Arg.Bool(begin fun b -> iteration_guided := b end),
+        "<bool> : if true, guided analysis of Gopand and Reps (default: false)"
       );
       (
-	"-widening",
-	Arg.Tuple([
-	  Arg.Int(begin fun n ->
-	    if n<0 then
-	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `widening start' argument"))
-	    else
-	      widening_start := n
-	  end);
-	  Arg.Int(begin fun n ->
-	    if n<0 then
-	      raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `descending' argument"))
-	    else
-	      widening_descend := n
-	  end)
-	]),
-	"<int><int> : specifies widening delay and nb. of descending steps (default: 1 2)"
+        "-widening",
+        Arg.Tuple([
+          Arg.Int(begin fun n ->
+            if n<0 then
+              raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `widening start' argument"))
+            else
+              widening_start := n
+          end);
+          Arg.Int(begin fun n ->
+            if n<0 then
+              raise (Arg.Bad ("Wrong argument `"^(string_of_int n)^"'; option `-widening' expects a positive integer for its `descending' argument"))
+            else
+              widening_descend := n
+          end)
+        ]),
+        "<int><int> : specifies widening delay and nb. of descending steps (default: 1 2)"
       )
       ;
       (
-	"-display",
-	Arg.Symbol(
-	  lnamedisplaytags,
-	  begin fun name -> displaytags := List.assoc name assocnamedisplaytags end
-	),
-	" : display style (default: color)"
+        "-display",
+        Arg.Symbol(
+          lnamedisplaytags,
+          begin fun name -> displaytags := List.assoc name assocnamedisplaytags end
+        ),
+        " : display style (default: color)"
       );
       (
-	"-margin",
-	Arg.Int(fun n -> Format.set_margin n),
-	" : nb of columns for text display"
+        "-margin",
+        Arg.Int(fun n -> Format.set_margin n),
+        " : nb of columns for text display"
       );
       (
-	"-print_box",
-	Arg.Bool(fun b -> print_box := b),
-	" : if true, also print bounding boxes (default: false)"
+        "-print_box",
+        Arg.Bool(fun b -> print_box := b),
+        " : if true, also print bounding boxes (default: false)"
       );
       (
-	"-analysis",
-	Arg.String(begin fun str ->
-	  analysis := [];
-	  String.iter
-	    (begin fun chr ->
-	      match chr with
-	      | 'f' ->
-		  analysis := Forward :: !analysis
-	      | 'b' ->
-		  analysis := Backward :: !analysis
-	      | _ ->
-		  raise (Arg.Bad ("Wrong argument `"^str^"'; option `-analysis' expects only 'f' or 'b' characters in its argument string"))
-	    end)
-	    str;
-	  analysis := List.rev !analysis;
-	  if !analysis=[] then analysis := [Forward];
-	end),
-	"<('f'|'b')+> : sequence of forward and backward analyses to perform (default \"f\")"
+        "-analysis",
+        Arg.String(begin fun str ->
+          analysis := [];
+          String.iter
+            (begin fun chr ->
+              match chr with
+              | 'f' ->
+                  analysis := Forward :: !analysis
+              | 'b' ->
+                  analysis := Backward :: !analysis
+              | _ ->
+                  raise (Arg.Bad ("Wrong argument `"^str^"'; option `-analysis' expects only 'f' or 'b' characters in its argument string"))
+            end)
+            str;
+          analysis := List.rev !analysis;
+          if !analysis=[] then analysis := [Forward];
+        end),
+        "<('f'|'b')+> : sequence of forward and backward analyses to perform (default \"f\")"
       )
     ]

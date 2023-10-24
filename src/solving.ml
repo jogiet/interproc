@@ -94,8 +94,8 @@ let make_fpmanager
     Fixpoint.dot_attrhedge= begin fun fmt hedge ->
       let transfer = PSHGraph.attrhedge graph hedge in
       fprintf fmt "%i: %a"
-	hedge
-	Equation.print_transfer transfer
+        hedge
+        Equation.print_transfer transfer
     end;
   }
 
@@ -114,9 +114,9 @@ let make_emptyoutput
     (begin fun hedge arc -> () end)
     (begin fun info ->
       {
-	Fixpoint.time = 0.0;
-	Fixpoint.ascending = (let open FixpointType in { nb=0; stable=false }),[];
-	Fixpoint.descending = (let open FixpointType in { nb=0; stable=false }),[];
+        Fixpoint.time = 0.0;
+        Fixpoint.ascending = (let open FixpointType in { nb=0; stable=false }),[];
+        Fixpoint.descending = (let open FixpointType in { nb=0; stable=false }),[];
       }
     end)
 
@@ -131,10 +131,10 @@ let environment_of_tvar
   let (lint,lreal) =
     Array.fold_right
       (begin fun var (lint,lreal) ->
-	begin match typ_of_var var with
-	| Apron.Environment.INT -> (var::lint,lreal)
-	| Apron.Environment.REAL -> (lint,var::lreal)
-	end
+        begin match typ_of_var var with
+        | Apron.Environment.INT -> (var::lint,lreal)
+        | Apron.Environment.REAL -> (lint,var::lreal)
+        end
       end)
       tvar
       ([],[])
@@ -161,8 +161,8 @@ module Forward = struct
     =
     let res =
       Apron.Abstract1.assign_texpr
-	manager abstract
-	var expr dest
+        manager abstract
+        var expr dest
     in
 (*
     printf "apply_tassign %a := %a (%a) = %a@."
@@ -184,32 +184,32 @@ module Forward = struct
     let labstract =
       match expr with
       | Boolexpr.TRUE ->
-	  [abstract]
+          [abstract]
       | Boolexpr.DISJ lconj ->
-	  List.map
-	    (fun conj ->
-	      Apron.Abstract1.meet_tcons_array manager abstract conj)
-	    lconj
+          List.map
+            (fun conj ->
+              Apron.Abstract1.meet_tcons_array manager abstract conj)
+            lconj
     in
     let labstract =
       match dest with
       | None -> labstract
       | Some dest ->
-	  List.map
-	    (fun abstract -> Apron.Abstract1.meet manager abstract dest)
-	    labstract
+          List.map
+            (fun abstract -> Apron.Abstract1.meet manager abstract dest)
+            labstract
     in
     let res = match labstract with
     | [] ->
-	Apron.Abstract1.bottom manager (Apron.Abstract1.env abstract)
+        Apron.Abstract1.bottom manager (Apron.Abstract1.env abstract)
     | [x] -> x
-    | _	  -> Apron.Abstract1.join_array manager (Array.of_list labstract)
+    | _          -> Apron.Abstract1.join_array manager (Array.of_list labstract)
     in
     if false then
       printf "apply_condition %a %a => %a@."
-	Apron.Abstract1.print abstract
-	(Boolexpr.print (Apron.Tcons1.array_print ~first:"@[" ~sep:" &&@ " ~last:"@]")) expr
-	Apron.Abstract1.print res
+        Apron.Abstract1.print abstract
+        (Boolexpr.print (Apron.Tcons1.array_print ~first:"@[" ~sep:" &&@ " ~last:"@]")) expr
+        Apron.Abstract1.print res
     ;
     res
 
@@ -243,7 +243,7 @@ module Forward = struct
     begin match dest with
     | None -> ()
     | Some dest ->
-	Apron.Abstract1.meet_with manager abstract2 dest
+        Apron.Abstract1.meet_with manager abstract2 dest
     end;
     abstract2
 
@@ -257,11 +257,11 @@ module Forward = struct
      (* 0. We forget local variables in abscallee *)
     let env =
       Apron.Environment.remove (Apron.Abstract1.env abscallee)
-	(calleeinfo.Equation.plocal)
+        (calleeinfo.Equation.plocal)
     in
     let res =
       Apron.Abstract1.change_environment manager abscallee
-	env false
+        env false
     in
     (* 1. We rename in modified abscallee
        - formal in parameters by actual inparameters
@@ -278,17 +278,17 @@ module Forward = struct
     let env = Apron.Abstract1.env res in
     let tlinexpr =
       Array.map
-	(begin fun var ->
-	  let e = Apron.Linexpr1.make ~sparse:true env in
-	  Apron.Linexpr1.set_coeff e var (Apron.Coeff.s_of_int 1);
-	  e
-	end)
-	calleeinfo.Equation.poutput_tmp
+        (begin fun var ->
+          let e = Apron.Linexpr1.make ~sparse:true env in
+          Apron.Linexpr1.set_coeff e var (Apron.Coeff.s_of_int 1);
+          e
+        end)
+        calleeinfo.Equation.poutput_tmp
     in
     if tlinexpr<>[||] then
       Apron.Abstract1.assign_linexpr_array_with
-	manager res
-	outargs tlinexpr None
+        manager res
+        outargs tlinexpr None
     ;
     (* 4. We remove the introduced temporary variables *)
     Apron.Abstract1.change_environment_with
@@ -299,7 +299,7 @@ module Forward = struct
     begin match dest with
     | None -> ()
     | Some dest ->
-	Apron.Abstract1.meet_with manager res dest
+        Apron.Abstract1.meet_with manager res dest
     end;
     res
 
@@ -318,23 +318,23 @@ module Forward = struct
     let dest = match output with
       | None -> None
       | Some(output) ->
-	  let tdest = PSHGraph.succvertex graph hedge in
-	  assert(Array.length tdest = 1);
-	  let dest = PSHGraph.attrvertex output tdest.(0) in
-	  Some dest
+          let tdest = PSHGraph.succvertex graph hedge in
+          assert(Array.length tdest = 1);
+          let dest = PSHGraph.attrvertex output tdest.(0) in
+          Some dest
     in
     let res =
       match transfer with
       | Equation.Tassign(var,expr) ->
-	  apply_tassign manager abs var expr dest
+          apply_tassign manager abs var expr dest
       | Equation.Lassign _ ->
-	  failwith ""
+          failwith ""
       | Equation.Condition cond ->
-	  apply_condition manager abs cond dest
+          apply_condition manager abs cond dest
       | Equation.Call(callerinfo,calleeinfo,tin,tout) ->
-	  apply_call manager abs calleeinfo tin dest
+          apply_call manager abs calleeinfo tin dest
       | Equation.Return(callerinfo,calleeinfo,tin,tout) ->
-	  apply_return manager abs tabs.(1) calleeinfo tin tout dest
+          apply_return manager abs tabs.(1) calleeinfo tin tout dest
     in
     ((),res)
 
@@ -357,13 +357,13 @@ module Forward = struct
       let start = maininfo.Equation.pstart in
       begin match output with
       | None ->
-	  PSette.singleton Equation.compare_point start
+          PSette.singleton Equation.compare_point start
       | Some output ->
-	  let abstract = PSHGraph.attrvertex output start in
-	  if Apron.Abstract1.is_bottom manager abstract then
-	    PSette.empty Equation.compare_point
-	  else
-	    (PSette.singleton Equation.compare_point start)
+          let abstract = PSHGraph.attrvertex output start in
+          if Apron.Abstract1.is_bottom manager abstract then
+            PSette.empty Equation.compare_point
+          else
+            (PSette.singleton Equation.compare_point start)
       end
     in
     if PSette.is_empty sstart then begin
@@ -371,42 +371,42 @@ module Forward = struct
     end
     else begin
       let abstract_init = begin fun vertex ->
-	begin match output with
-	| None ->
-	    Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
-	| Some(output) ->
-	    PSHGraph.attrvertex output vertex
-	end
+        begin match output with
+        | None ->
+            Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
+        | Some(output) ->
+            PSHGraph.attrvertex output vertex
+        end
       end
       in
       let fpmanager =
-	make_fpmanager ~fmt ~output ~debug ~graph
-	  ~man:manager
-	  ~abstract_init ~apply
+        make_fpmanager ~fmt ~output ~debug ~graph
+          ~man:manager
+          ~abstract_init ~apply
       in
       let fp =
-	if !Options.iteration_guided then
-	  Fixpoint.analysis_guided
-	    fpmanager graph sstart
-	    (fun filter  ->
-	      Fixpoint.make_strategy_default
-		~vertex_dummy:Equation.vertex_dummy
-		~hedge_dummy:Equation.hedge_dummy
-		~priority:(PSHGraph.Filter filter)
-		~widening_start:(!Options.widening_start)
-		~widening_descend:(!Options.widening_descend)
-		~depth:(!Options.iteration_depth)
-		graph sstart)
-	else
-	  Fixpoint.analysis_std
-	    fpmanager graph sstart
-	    (Fixpoint.make_strategy_default
-	      ~vertex_dummy:Equation.vertex_dummy
-	      ~hedge_dummy:Equation.hedge_dummy
-	      ~widening_start:(!Options.widening_start)
-	      ~widening_descend:(!Options.widening_descend)
-	      ~depth:(!Options.iteration_depth)
-	      graph sstart)
+        if !Options.iteration_guided then
+          Fixpoint.analysis_guided
+            fpmanager graph sstart
+            (fun filter  ->
+              Fixpoint.make_strategy_default
+                ~vertex_dummy:Equation.vertex_dummy
+                ~hedge_dummy:Equation.hedge_dummy
+                ~priority:(PSHGraph.Filter filter)
+                ~widening_start:(!Options.widening_start)
+                ~widening_descend:(!Options.widening_descend)
+                ~depth:(!Options.iteration_depth)
+                graph sstart)
+        else
+          Fixpoint.analysis_std
+            fpmanager graph sstart
+            (Fixpoint.make_strategy_default
+              ~vertex_dummy:Equation.vertex_dummy
+              ~hedge_dummy:Equation.hedge_dummy
+              ~widening_start:(!Options.widening_start)
+              ~widening_descend:(!Options.widening_descend)
+              ~depth:(!Options.iteration_depth)
+              graph sstart)
       in
       fp
     end
@@ -431,8 +431,8 @@ module Backward = struct
     =
     let res =
       Apron.Abstract1.substitute_texpr
-	manager abstract
-	var expr dest
+        manager abstract
+        var expr dest
     in
 (*
     printf "apply_tassign %a := %a (%a) = %a@."
@@ -459,8 +459,8 @@ module Backward = struct
      abstract value *)
     let tenv =
       environment_of_tvar
-	(Apron.Environment.typ_of_var env)
-	calleeinfo.Equation.pinput
+        (Apron.Environment.typ_of_var env)
+        calleeinfo.Equation.pinput
     in
     let abstract2 =
       Apron.Abstract1.change_environment manager abstract tenv false
@@ -480,7 +480,7 @@ module Backward = struct
     begin match dest with
     | None -> ()
     | Some dest ->
-	Apron.Abstract1.meet_with manager abstract2 dest
+        Apron.Abstract1.meet_with manager abstract2 dest
     end;
     abstract2
 
@@ -495,32 +495,32 @@ module Backward = struct
     (* 1. We rename actual output parameters by temporary output parameters *)
     let res =
       Apron.Abstract1.rename_array
-	manager abstract
-	outargs calleeinfo.Equation.poutput_tmp
+        manager abstract
+        outargs calleeinfo.Equation.poutput_tmp
     in
     (* 2. We switch to an environment composed of
-	  temporary output parameters and actual input paramaters *)
+          temporary output parameters and actual input paramaters *)
     let lint = ref [] and lreal = ref [] in
     Array.iteri
       (begin fun i var ->
-	let list =
-	  match Apron.Environment.typ_of_var calleeinfo.Equation.penv var with
-	  | Apron.Environment.INT -> lint
-	  | Apron.Environment.REAL -> lreal
-	in
-	let var_tmp = calleeinfo.Equation.poutput_tmp.(i) in
-	list := var_tmp :: !list
+        let list =
+          match Apron.Environment.typ_of_var calleeinfo.Equation.penv var with
+          | Apron.Environment.INT -> lint
+          | Apron.Environment.REAL -> lreal
+        in
+        let var_tmp = calleeinfo.Equation.poutput_tmp.(i) in
+        list := var_tmp :: !list
       end)
       calleeinfo.Equation.poutput
     ;
     Array.iter
       (begin fun var ->
-	let list =
-	  match Apron.Environment.typ_of_var callerinfo.Equation.penv var with
-	  | Apron.Environment.INT -> lint
-	  | Apron.Environment.REAL -> lreal
-	in
-	list := var :: !list
+        let list =
+          match Apron.Environment.typ_of_var callerinfo.Equation.penv var with
+          | Apron.Environment.INT -> lint
+          | Apron.Environment.REAL -> lreal
+        in
+        list := var :: !list
       end)
       inargs
     ;
@@ -541,7 +541,7 @@ module Backward = struct
     begin match dest with
     | None -> ()
     | Some dest ->
-	Apron.Abstract1.meet_with manager res dest
+        Apron.Abstract1.meet_with manager res dest
     end;
     res
 
@@ -560,23 +560,23 @@ module Backward = struct
     let dest = match output with
       | None -> None
       | Some(output) ->
-	  let tdest = PSHGraph.succvertex graph hedge in
-	  assert(Array.length tdest = 1);
-	  let dest = PSHGraph.attrvertex output tdest.(0) in
-	  Some dest
+          let tdest = PSHGraph.succvertex graph hedge in
+          assert(Array.length tdest = 1);
+          let dest = PSHGraph.attrvertex output tdest.(0) in
+          Some dest
     in
     let res =
       match transfer with
       | Equation.Tassign(var,expr) ->
-	  apply_tassign manager abs var expr dest
+          apply_tassign manager abs var expr dest
       | Equation.Lassign _ ->
-	  failwith ""
+          failwith ""
       | Equation.Condition cond ->
-	  apply_condition manager abs cond dest
+          apply_condition manager abs cond dest
       | Equation.Call(callerinfo,calleeinfo,tin,tout) ->
-	  apply_call manager abs callerinfo calleeinfo tin dest
+          apply_call manager abs callerinfo calleeinfo tin dest
       | Equation.Return(callerinfo,calleeinfo,tin,tout) ->
-	  apply_return manager abs callerinfo calleeinfo tin tout dest
+          apply_return manager abs callerinfo calleeinfo tin tout dest
     in
     ((),res)
 
@@ -598,20 +598,20 @@ module Backward = struct
     let sstart = ref (PSette.empty Equation.compare_point) in
     List.iter
       (begin fun procedure ->
-	Spl_syn.iter_eltinstr
-	  (begin fun (bpoint,instr) ->
-	    if instr.Spl_syn.instruction = Spl_syn.FAIL then begin
-	      let ok = match output with
-		| None -> true
-		| Some output ->
-		    let abstract = PSHGraph.attrvertex output bpoint in
-		    not (Apron.Abstract1.is_bottom manager abstract)
-	      in
-	      if ok then
-		sstart := PSette.add bpoint !sstart;
-	    end
-	  end)
-	  procedure.Spl_syn.pcode;
+        Spl_syn.iter_eltinstr
+          (begin fun (bpoint,instr) ->
+            if instr.Spl_syn.instruction = Spl_syn.FAIL then begin
+              let ok = match output with
+                | None -> true
+                | Some output ->
+                    let abstract = PSHGraph.attrvertex output bpoint in
+                    not (Apron.Abstract1.is_bottom manager abstract)
+              in
+              if ok then
+                sstart := PSette.add bpoint !sstart;
+            end
+          end)
+          procedure.Spl_syn.pcode;
       end)
       prog.Spl_syn.procedures;
 
@@ -620,42 +620,42 @@ module Backward = struct
     end
     else begin
       let abstract_init = begin fun vertex ->
-	begin match output with
-	| None ->
-	    Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
-	| Some(output) ->
-	    PSHGraph.attrvertex output vertex
-	end
+        begin match output with
+        | None ->
+            Apron.Abstract1.top manager (Hashhe.find info.Equation.pointenv vertex)
+        | Some(output) ->
+            PSHGraph.attrvertex output vertex
+        end
       end
       in
       let fpmanager =
-	make_fpmanager ~fmt ~output ~debug ~graph
-	  ~man:manager
-	  ~abstract_init ~apply
+        make_fpmanager ~fmt ~output ~debug ~graph
+          ~man:manager
+          ~abstract_init ~apply
       in
       let fp =
-	if !Options.iteration_guided then
-	  Fixpoint.analysis_guided
-	    fpmanager graph !sstart
-	    (fun filter  ->
-	      Fixpoint.make_strategy_default
-		~vertex_dummy:Equation.vertex_dummy
-		~hedge_dummy:Equation.hedge_dummy
-		~priority:(PSHGraph.Filter filter)
-		~widening_start:(!Options.widening_start)
-		~widening_descend:(!Options.widening_descend)
-		~depth:(!Options.iteration_depth)
-		graph !sstart)
-	else
-	  Fixpoint.analysis_std
-	    fpmanager graph !sstart
-	    (Fixpoint.make_strategy_default
-	      ~vertex_dummy:Equation.vertex_dummy
-	      ~hedge_dummy:Equation.hedge_dummy
-	      ~widening_start:(!Options.widening_start)
-	      ~widening_descend:(!Options.widening_descend)
-	      ~depth:(!Options.iteration_depth)
-	      graph !sstart)
+        if !Options.iteration_guided then
+          Fixpoint.analysis_guided
+            fpmanager graph !sstart
+            (fun filter  ->
+              Fixpoint.make_strategy_default
+                ~vertex_dummy:Equation.vertex_dummy
+                ~hedge_dummy:Equation.hedge_dummy
+                ~priority:(PSHGraph.Filter filter)
+                ~widening_start:(!Options.widening_start)
+                ~widening_descend:(!Options.widening_descend)
+                ~depth:(!Options.iteration_depth)
+                graph !sstart)
+        else
+          Fixpoint.analysis_std
+            fpmanager graph !sstart
+            (Fixpoint.make_strategy_default
+              ~vertex_dummy:Equation.vertex_dummy
+              ~hedge_dummy:Equation.hedge_dummy
+              ~widening_start:(!Options.widening_start)
+              ~widening_descend:(!Options.widening_descend)
+              ~depth:(!Options.iteration_depth)
+              graph !sstart)
       in
       fp
     end
@@ -670,9 +670,9 @@ let print_apron_scalar fmt scalar =
   else begin
     match scalar with
     | Apron.Scalar.Float _ | Apron.Scalar.Mpfrf _ ->
-	Apron.Scalar.print fmt scalar
+        Apron.Scalar.print fmt scalar
     | Apron.Scalar.Mpqf mpqf ->
-	Apron.Scalar.print fmt (Apron.Scalar.Float (Mpqf.to_float mpqf))
+        Apron.Scalar.print fmt (Apron.Scalar.Float (Mpqf.to_float mpqf))
   end
 
 let print_apron_interval fmt itv =
@@ -688,12 +688,12 @@ let print_apron_box fmt box =
   Array.iteri
     (begin fun i interval ->
       if not (Apron.Interval.is_top interval) then begin
-	if not !first then fprintf fmt ";@ ";
-	let var = Apron.Environment.var_of_dim env i in
-	let name = Apron.Var.to_string var in
-	fprintf fmt "%s in %a" name
-	  print_apron_interval interval;
-	first := false
+        if not !first then fprintf fmt ";@ ";
+        let var = Apron.Environment.var_of_dim env i in
+        let name = Apron.Var.to_string var in
+        fprintf fmt "%s in %a" name
+          print_apron_interval interval;
+        first := false
       end;
     end)
     tinterval
@@ -712,11 +712,11 @@ let print_output prog fmt fp =
   fprintf fmt "@[<v>%a@]@."
     (PSpl_syn.print_program
       begin fun fmt (point:Spl_syn.point) ->
-	let abs = PSHGraph.attrvertex fp point in
-	fprintf fmt "@[<hov>%s%a@ %a%s@]"
-	  (!Options.displaytags).Options.precolorR
-	  PSpl_syn.print_point point
-	  print_abstract1 abs
-	  (!Options.displaytags).Options.postcolor
+        let abs = PSHGraph.attrvertex fp point in
+        fprintf fmt "@[<hov>%s%a@ %a%s@]"
+          (!Options.displaytags).Options.precolorR
+          PSpl_syn.print_point point
+          print_abstract1 abs
+          (!Options.displaytags).Options.postcolor
       end)
     prog
