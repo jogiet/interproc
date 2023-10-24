@@ -7,7 +7,7 @@ description:
 maintainer: ["Josselin Giet"]
 authors: ["Bertrand Jeannet"]
 license: "LGPL"
-tags: ["Abstract interpretation" "interproceduralm analysis"]
+tags: ["Abstract interpretation" "interprocedural analysis"]
 homepage: "https://github.com/jogiet/interproc"
 doc:
   "https://pop-art.inrialpes.fr/people/bjeannet/bjeannet-forge/interproc/index.html"
@@ -15,6 +15,7 @@ bug-reports: "https://github.com/jogiet/interproc/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.7"}
+  "menhirLib"
   "apron"
   "fixpoint"
   "camllib"
