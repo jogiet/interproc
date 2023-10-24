@@ -12,8 +12,8 @@ val build_graphs : Format.formatter -> Spl_syn.program -> Equation.graph * Equat
 val compute_and_display :
   Format.formatter ->
   Spl_syn.program ->
-  Equation.graph -> Equation.graph -> 
-  'a Apron.Manager.t -> 
+  Equation.graph -> Equation.graph ->
+  'a Apron.Manager.t ->
   unit
 
 val analyze_and_display : Format.formatter -> Spl_syn.program -> unit

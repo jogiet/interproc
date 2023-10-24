@@ -63,7 +63,7 @@ type instruction =
     (** Semantically equivalent to [if expr then skip; else halt;] *)
   | ASSIGN of Apron.Var.t * iexpr
     (** Assignement of a (numerical) variable *)
-  | CALL   of var list * string * var list 
+  | CALL   of var list * string * var list
     (** Procedure call [(x,y) = f(a,b)] *)
   | IF     of bexpr * block
     (** If-then instruction *)
@@ -81,7 +81,7 @@ and instr = {
 (** Sequence of instructions *)
 and block = {
   mutable bpoint : point; (** label preceding the first instruction of the
-			     sequence *) 
+			     sequence *)
   instrs : instr list;    (** Labelled instruction list *)
 }
 
@@ -121,7 +121,7 @@ val iter_instr : (point * instr -> unit) -> block -> unit
 
 (** Applies [f] on all elementary instructions (assignements and calls)
     contained in the block, in the natural reading order.  [f] is actually
-    given a pair [p,instr], where [p] is the control point preceding 
+    given a pair [p,instr], where [p] is the control point preceding
     the instruction.
 *)
 val iter_eltinstr : (point * instr -> unit) -> block -> unit

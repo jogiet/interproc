@@ -43,7 +43,7 @@ let print_poutput fmt (l:Apron.Var.t list) =
   match l with
   | [x] -> Apron.Var.print fmt x
   | _ ->
-      print_list 
+      print_list
       ~first:"(@[<h>" ~sep:", " ~last:"@])"
       Apron.Var.print fmt l
 
@@ -52,12 +52,12 @@ let print_pinput fmt (l:Apron.Var.t list) =
     ~first:"@[<h>" ~sep:", " ~last:"@]"
     Apron.Var.print fmt l
 
-  
 
-let print_var fmt x = 
+
+let print_var fmt x =
   pp_print_string fmt (Apron.Var.to_string x)
 
-let print_typ fmt x = 
+let print_typ fmt x =
   pp_print_string fmt
     begin match  x with
     | INT -> "int"
@@ -77,7 +77,7 @@ let print_typcons fmt (typ:constyp) =
     | LT -> "<"
     end
 let print_cons fmt (e1,typ,e2) =
-  fprintf fmt "%a %a %a" 
+  fprintf fmt "%a %a %a"
     print_iexpr e1
     print_typcons typ
     print_iexpr e2
@@ -108,9 +108,9 @@ let print_bexpr fmt bexpr =
   in
   print 0 fmt bexpr
 
-let rec print_instr 
-  print_comment 
-  (fmt:Format.formatter) 
+let rec print_instr
+  print_comment
+  (fmt:Format.formatter)
   (instr:instr)
   =
   begin match instr.instruction with
@@ -123,18 +123,18 @@ let rec print_instr
   | ASSUME(bexpr) ->
      fprintf fmt "assume %a;"
       print_bexpr bexpr
-  | ASSIGN (var,iexpr) -> 
+  | ASSIGN (var,iexpr) ->
       fprintf fmt "%a = %a;"
       Apron.Var.print var
       print_iexpr iexpr
-  | IF (bexpr,block) -> 
+  | IF (bexpr,block) ->
       fprintf fmt "if %a then@   %a@ endif;"
       print_bexpr bexpr
       (print_block print_comment) block
   | IFELSE(bexpr,bthen,belse) ->
       fprintf fmt "if %a then@    %a@ else@   %a@ endif;"
       print_bexpr bexpr
-      (print_block print_comment) bthen 
+      (print_block print_comment) bthen
       (print_block print_comment) belse
   | LOOP(bexpr,block) ->
       fprintf fmt "while %a do@   %a@ done;"
@@ -148,15 +148,15 @@ let rec print_instr
   end;
   fprintf fmt " /* %a */"
     print_comment instr.ipoint
-    
-and print_block print_comment fmt block =  
+
+and print_block print_comment fmt block =
   fprintf fmt "@[<v>/* %a */"
     print_comment block.bpoint
   ;
   begin match block.instrs with
   | [] -> fprintf fmt " @]"
   | _ ->
-      print_list ~first:"@ @[<v>" ~sep:"@ " ~last:"@]" 
+      print_list ~first:"@ @[<v>" ~sep:"@ " ~last:"@]"
       (print_instr print_comment) fmt block.instrs
   end;
   fprintf fmt "@]"
@@ -167,7 +167,7 @@ let print_declaration fmt (var,typ) =
     print_typ typ
 
 let print_declarations fmt list =
-  print_list ~first:"@[<hov>" ~sep:",@ " ~last:"@]" 
+  print_list ~first:"@[<hov>" ~sep:",@ " ~last:"@]"
     print_declaration fmt list
 
 

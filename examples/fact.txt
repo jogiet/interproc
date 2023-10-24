@@ -1,6 +1,6 @@
 
 /* Multiplication with a loop */
-proc fact1 (a:int) returns (b:int) 
+proc fact1 (a:int) returns (b:int)
 var c:int;
 begin
   if (a<=1) then
@@ -27,10 +27,10 @@ begin
   while (t>0) do
     c = c+a;
     t = t-1;
-  done 
+  done
   ;
 end
-proc fact2 (a:int) returns (b:int) 
+proc fact2 (a:int) returns (b:int)
 var c:int;
 begin
   if (a<=1) then
@@ -45,7 +45,7 @@ end
 
 /* Direct Multiplication.
    Changing the order of the arguments changes the result */
-proc fact3 (a:int) returns (b:int) 
+proc fact3 (a:int) returns (b:int)
 var c:int;
 begin
   if (a<=1) then
