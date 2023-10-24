@@ -22,7 +22,7 @@
  (name interproc)
  (synopsis "Interprocedural analyzer")
  (description "Interproc is an interprocedural analyzer for a small imperative language with (recursive) procedure calls. It infers invariants on the numerical variables of analyzed program.")
- (depends ocaml dune menhirLib apron fixpoint camllib)
+ (depends ocaml dune menhirLib menhir apron fixpoint camllib)
  (tags
   ("Abstract interpretation" "interprocedural analysis")))
 
