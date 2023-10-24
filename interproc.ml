@@ -24,7 +24,7 @@ let main () =
   };
   let prog = Frontend.parse_lexbuf Format.err_formatter lexbuf in
   close_in input;
-  
+
   if !debug>0 then
     printf "%sProgram with its control points:%s@.%a@."
       (!Options.displaytags).precolorB (!Options.displaytags).postcolor

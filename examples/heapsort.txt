@@ -4,7 +4,7 @@ begin
   assume (a-2*b>=0 and a-2*b<=1); /* trick to encode b = a div 2 */
 end
 
-proc heapsort(N:int) returns (res:int) 
+proc heapsort(N:int) returns (res:int)
 var L:int,R:int,I:int,J:int,
 continue:int,nondet:int;
 begin

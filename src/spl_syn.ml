@@ -63,7 +63,7 @@ type instruction =
     (** Semantically equivalent to [if expr then skip; else halt;] *)
   | ASSIGN of Apron.Var.t * iexpr
     (** Assignement of a (numerical) variable *)
-  | CALL   of var list * string * var list 
+  | CALL   of var list * string * var list
     (** Procedure call [(x,y) = f(a,b)] *)
   | IF     of bexpr * block
     (** If-then instruction *)
@@ -81,7 +81,7 @@ and instr = {
 (** Sequence of instructions *)
 and block = {
   mutable bpoint : point; (** label preceding the first instruction of the
-			     sequence *) 
+			     sequence *)
   instrs : instr list;    (** Labelled instruction list *)
 }
 
@@ -124,9 +124,9 @@ let rec iter_instr (f:point * instr -> unit) (block:block) : unit
       (begin fun point instr ->
 	f (point,instr);
 	begin match instr.instruction with
-	| SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ -> 
+	| SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ ->
 	    ()
-	| IF(bexpr,block) -> 
+	| IF(bexpr,block) ->
 	    iter_instr f block;
 	| IFELSE(bexpr,block1,block2) ->
 	    iter_instr f block1;
@@ -143,7 +143,7 @@ let rec iter_instr (f:point * instr -> unit) (block:block) : unit
 
 (** Applies [f] on all elementary instructions (assignements and calls)
     contained in the block, in the natural reading order.  [f] is actually
-    given a pair [p,instr], where [p] is the control point preceding 
+    given a pair [p,instr], where [p] is the control point preceding
     the instruction.
 *)
 let rec iter_eltinstr (f:point * instr -> unit) (block:block) : unit
@@ -152,9 +152,9 @@ let rec iter_eltinstr (f:point * instr -> unit) (block:block) : unit
     List.fold_left
     (begin fun point instr ->
       begin match instr.instruction with
-      | SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ -> 
+      | SKIP | HALT | FAIL | ASSUME _ | ASSIGN _ | CALL _ ->
 	  f (point,instr);
-      | IF(bexpr,block) -> 
+      | IF(bexpr,block) ->
 	  iter_eltinstr f block;
       | IFELSE(bexpr,block1,block2) ->
 	  iter_eltinstr f block1;

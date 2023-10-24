@@ -112,7 +112,7 @@ scalar:
 | TK_FLOAT { Apron.Scalar.Float($1) }
 
 instruction:
-  TK_SKIP 
+  TK_SKIP
       { SKIP }
 | TK_HALT
       { HALT }
@@ -122,7 +122,7 @@ instruction:
       { ASSUME($2) }
 | variable TK_AF iexpr_random
       { ASSIGN($1,$3) }
-| TK_LPAR variables TK_RPAR TK_AF TK_ID TK_LPAR variables TK_RPAR 
+| TK_LPAR variables TK_RPAR TK_AF TK_ID TK_LPAR variables TK_RPAR
       { CALL ($2,$5,$7) }
 | variable TK_AF TK_ID TK_LPAR variables TK_RPAR
       { CALL ([$1],$3,$5) }
@@ -130,7 +130,7 @@ instruction:
       { IF ($2, { bpoint=$3; instrs = $4 }) }
 | TK_IF bexpr TK_THEN instr_seq TK_ELSE instr_seq TK_ENDIF
       { IFELSE($2,
-               { bpoint=$3; instrs = $4}, 
+               { bpoint=$3; instrs = $4},
                { bpoint=$5; instrs = $6})
       }
 | TK_WHILE bexpr TK_DO instr_seq TK_DONE

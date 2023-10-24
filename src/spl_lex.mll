@@ -13,7 +13,7 @@ let keywords = Hashtbl.create 53
 let _ =
   Array.iter
     (fun (keyword,token) -> Hashtbl.add keywords keyword token)
-    [| 
+    [|
       ("proc", TK_PROC);
       ("var", TK_VAR);
       ("true", TK_TRUE);
@@ -36,7 +36,7 @@ let _ =
       ("brandom", TK_BRANDOM);
       ("random", TK_RANDOM);
     |]
-    
+
 let newline (lexbuf:Lexing.lexbuf) : unit
   =
   let pos = lexbuf.Lexing.lex_curr_p in
@@ -51,7 +51,7 @@ let point lexbuf offset : Spl_syn.point
   let pos = lexbuf.Lexing.lex_curr_p in
   let line = pos.Lexing.pos_lnum in
   let col = pos.Lexing.pos_cnum - pos.Lexing.pos_bol in
-  { 
+  {
     Spl_syn.line = line;
     Spl_syn.col = col + offset;
     Spl_syn.char = pos.Lexing.pos_cnum;
@@ -107,7 +107,7 @@ rule token = parse
     (* line count *)
     | '\n'
     { newline lexbuf; token lexbuf }
- 
+
     (* comments: nested /* */, and // are allowed *)
     | "/*" { Spl_syn.start_of_comment := Lexing.lexeme_start_p lexbuf;
 	     comment lexbuf ;
@@ -162,9 +162,9 @@ rule token = parse
 
     (* identifiers *)
     | ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
-      { 
+      {
 	let id = Lexing.lexeme lexbuf in
-	try Hashtbl.find keywords id 
+	try Hashtbl.find keywords id
 	with Not_found -> TK_ID id }
 
     (* end of file *)

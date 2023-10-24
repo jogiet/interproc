@@ -1,5 +1,5 @@
 
-proc ack(x:int,y:int) returns (res:int) 
+proc ack(x:int,y:int) returns (res:int)
 var t:int, t1:int;
 begin
   assume x>=0 and y>=0;

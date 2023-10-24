@@ -6,7 +6,7 @@ var t1:int, t2:int;
 begin
   if (n>100) then
      r = n-10;
-  else 
+  else
      t1 = n + 8;
      t2 = MC(t1);
      r = MC(t2);

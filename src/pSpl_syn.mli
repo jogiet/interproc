@@ -14,7 +14,7 @@ val print_list :
   ?sep:(unit, Format.formatter, unit) format ->
   ?last:(unit, Format.formatter, unit) format ->
   (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a list -> unit
- 
+
 (** {2 Simple printing functions} *)
 
 val print_point : Format.formatter -> point -> unit
