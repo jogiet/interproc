@@ -6,7 +6,8 @@
    Copyright (C) Mathias Argoud, Ga�l Lalire, Bertrand Jeannet 2007.
 *)
 
-open Format;;
+open Format
+open Camllib
 
 (*  ********************************************************************* *)
 (** {2 Hypergraphs *)
