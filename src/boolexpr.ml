@@ -3,10 +3,11 @@
 (* This file is part of the Interproc analyzer, released under GPL license.
    Please read the COPYING file packaged in the distribution.
 
-   Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
+   Copyright (C) Mathias Argoud, Gaï¿½l Lalire, Bertrand Jeannet 2007.
 *)
 
-open Format;;
+open Format
+open Camllib
 
 (** Type of a Boolean expression under DNF, parametrized by the
     type of conjunctions. False is represented by [DISJ([])].

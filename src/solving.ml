@@ -7,6 +7,7 @@
 *)
 
 open Format
+open Camllib
 
 (*  ********************************************************************* *)
 (** {2 Instanciated module and options} *)

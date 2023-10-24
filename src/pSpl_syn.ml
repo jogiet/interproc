@@ -3,11 +3,11 @@
 (* This file is part of the Interproc analyzer, released under GPL license.
    Please read the COPYING file packaged in the distribution.
 
-   Copyright (C) Mathias Argoud, Gaël Lalire, Bertrand Jeannet 2007.
+   Copyright (C) Mathias Argoud, Gaï¿½l Lalire, Bertrand Jeannet 2007.
 *)
 
-open Spl_syn;;
-open Format;;
+open Spl_syn
+open Format
 
 let print_point fmt (point:point)
   =

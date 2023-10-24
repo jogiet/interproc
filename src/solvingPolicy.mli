@@ -6,6 +6,8 @@
    Copyright (C) Mathias Argoud, Ga�l Lalire, Bertrand Jeannet 2007.
 *)
 
+open Camllib
+
 type 'a policy = 'a Apron.Policy.t Boolexpr.t
 
 module Forward : sig

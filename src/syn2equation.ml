@@ -8,6 +8,7 @@
 
 open Spl_syn
 open Format
+open Camllib
 
 (*  ********************************************************************** *)
 (** {2 Useful Information for generating equations} *)
